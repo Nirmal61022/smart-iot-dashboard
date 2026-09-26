@@ -1,0 +1,7 @@
+{
+  "name": "smart-iot-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": { "serve": "firebase emulators:start --only hosting,database", "deploy": "firebase deploy" },
+  "devDependencies": { "firebase-tools": "^14.11.0" }
+}

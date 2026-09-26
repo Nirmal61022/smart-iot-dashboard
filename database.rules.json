@@ -1,0 +1,71 @@
+{
+  "rules": {
+    "iot": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      "current": {
+        ".validate": "newData.hasChildren(['temperature','humidity','ldr','bulb','mode','timestamp'])",
+        "temperature": {
+          ".validate": "newData.isNumber()"
+        },
+        "humidity": {
+          ".validate": "newData.isNumber()"
+        },
+        "ldr": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 4095"
+        },
+        "bulb": {
+          ".validate": "newData.isBoolean()"
+        },
+        "mode": {
+          ".validate": "newData.isString() && (newData.val() == 'manual' || newData.val() == 'automatic')"
+        },
+        "timestamp": {
+          ".validate": "newData.isNumber()"
+        }
+      },
+      "control": {
+        "bulb": {
+          ".validate": "newData.isBoolean()"
+        },
+        "mode": {
+          ".validate": "newData.isString() && (newData.val() == 'manual' || newData.val() == 'automatic')"
+        }
+      },
+      "settings": {
+        "ldrThreshold": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 4095"
+        },
+        "ldrInverted": {
+          ".validate": "newData.isBoolean()"
+        }
+      },
+      "history": {
+        "$record": {
+          ".validate": "newData.hasChildren(['timestamp','temperature','humidity','ldr','bulb','mode'])",
+          "timestamp": {
+            ".validate": "newData.isNumber()"
+          },
+          "temperature": {
+            ".validate": "newData.isNumber()"
+          },
+          "humidity": {
+            ".validate": "newData.isNumber()"
+          },
+          "ldr": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 4095"
+          },
+          "bulb": {
+            ".validate": "newData.isBoolean()"
+          },
+          "mode": {
+            ".validate": "newData.isString() && (newData.val() == 'manual' || newData.val() == 'automatic')"
+          }
+        },
+        ".indexOn": [
+          "timestamp"
+        ]
+      }
+    }
+  }
+}
