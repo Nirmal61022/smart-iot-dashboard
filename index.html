@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SmartHome IoT Dashboard</title>
-  <meta name="description" content="ESP32 Smart Home IoT Dashboard & Historical Analytics">
+  <title>SmartHome IoT Dashboard · Executive Cloud Platform</title>
+  <meta name="description" content="Professional Next-Gen ESP32 Smart Home IoT Dashboard & Historical Analytics">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
 
-  <!-- Exact Match Stylesheet -->
-  <link rel="stylesheet" href="css/dashboard-exact.css">
+  <!-- Stacked Deck Stylesheet (Boxes One by One Below) -->
+  <link rel="stylesheet" href="css/dashboard-stacked.css">
 
   <!-- Chart.js for Historical Analytics Line Graph -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
@@ -18,36 +18,36 @@
   <!-- =========================================================
        1. AUTHENTICATION OVERLAY (LocalStorage Auth)
        ========================================================= -->
-  <div id="authOverlay" class="auth-overlay" style="display: none;">
-    <div class="auth-modal-card">
-      <h2 class="auth-modal-title">SmartHome IoT Access</h2>
-      <p class="auth-modal-sub">Sign in to control & monitor your connected ESP32.</p>
+  <div id="authPopupOverlay" class="auth-popup-backdrop" style="display: none;">
+    <div class="auth-popup-card">
+      <h2 class="auth-popup-title">SmartHome IoT Access</h2>
+      <p class="auth-popup-sub">Sign in to control & monitor your connected ESP32.</p>
 
-      <div class="auth-pill-notice">
-        ⚡ <strong>Client-Side LocalStorage:</strong> Credentials and active sessions persist locally in your browser for seamless static hosting.
+      <div class="auth-popup-notice">
+        ⚡ <strong>Client-Side LocalStorage:</strong> Credentials & sessions are preserved locally in your browser for seamless static hosting on GitHub Pages.
       </div>
 
-      <div class="auth-tabs-row">
-        <button id="authTabSignIn" class="auth-tab-btn active" type="button">Sign In</button>
-        <button id="authTabSignUp" class="auth-tab-btn" type="button">Create Account</button>
+      <div class="auth-popup-tabs">
+        <button id="authTabSignIn" class="auth-tab-pill active" type="button">Sign In</button>
+        <button id="authTabSignUp" class="auth-tab-pill" type="button">Create Account</button>
       </div>
 
-      <div id="authAlertMsg" class="auth-alert-message"></div>
+      <div id="authAlertPopup" class="auth-alert-popup"></div>
 
-      <form id="authModalForm">
-        <div class="auth-input-group">
+      <form id="authPopupForm">
+        <div class="auth-field-block">
           <label for="authEmailInput">Email Address</label>
-          <input type="email" id="authEmailInput" class="auth-input-field" placeholder="nirmal.18@proto.tech" autocomplete="email" required>
+          <input type="email" id="authEmailInput" class="auth-field-input" placeholder="nirmal.18@proto.tech" autocomplete="email" required>
         </div>
 
-        <div class="auth-input-group">
+        <div class="auth-field-block">
           <label for="authPasswordInput">Password</label>
-          <input type="password" id="authPasswordInput" class="auth-input-field" placeholder="••••••••" autocomplete="current-password" minlength="6" required>
+          <input type="password" id="authPasswordInput" class="auth-field-input" placeholder="••••••••" autocomplete="current-password" minlength="6" required>
         </div>
 
-        <button type="submit" id="authSubmitBtn" class="btn-auth-submit">Sign In</button>
+        <button type="submit" id="authSubmitBtn" class="btn-popup-submit">Sign In to Dashboard</button>
         
-        <button type="button" id="btnDemoQuick" class="btn-demo-quick">
+        <button type="button" id="btnDemoQuick" class="btn-popup-demo">
           🚀 One-Click Demo Sign In (nirmal.18@proto.tech)
         </button>
       </form>
@@ -56,43 +56,44 @@
 
 
   <!-- =========================================================
-       2. TOP NAVIGATION BAR (Exact Match to Screenshot)
+       2. TOP EXECUTIVE NAVIGATION BAR
        ========================================================= -->
-  <header class="exact-navbar">
-    <div class="nav-brand-title">
-      SmartHome IoT Dashboard
+  <header class="stacked-navbar">
+    <div class="brand-title-wrap">
+      <div class="brand-logo-icon">⚡</div>
+      <div class="brand-title-text">SmartHome IoT Dashboard</div>
     </div>
 
     <!-- Center Nav Tabs -->
-    <nav class="nav-center-tabs">
-      <button class="nav-tab-item active" type="button">
+    <nav class="center-nav-links">
+      <button class="nav-link-btn active" type="button">
         <span>🏠</span> Dashboard
       </button>
-      <button class="nav-tab-item" type="button">
+      <button class="nav-link-btn" type="button">
         <span>🎛️</span> Live Controls
       </button>
-      <button class="nav-tab-item" type="button">
+      <button class="nav-link-btn" type="button">
         <span>📈</span> Analytics
       </button>
     </nav>
 
-    <!-- Right User Controls -->
-    <div class="nav-right-user">
-      <div class="user-profile-badge">
-        <div class="user-avatar-img">N</div>
-        <span class="user-email-label" id="userEmailDisplay">nirmal.18@proto.tech</span>
+    <!-- Right User Profile & Sign Out -->
+    <div class="right-user-deck">
+      <div class="user-tag-badge">
+        <div class="user-avatar-circle">N</div>
+        <span class="user-email-string" id="userEmailDisplay">nirmal.18@proto.tech</span>
       </div>
-      <button id="btnSignOut" class="btn-signout-exact" type="button">Sign Out</button>
+      <button id="btnSignOut" class="btn-signout-pro" type="button">Sign Out</button>
     </div>
   </header>
 
-  <!-- Status indicators floating below navbar right -->
-  <div class="sub-status-bar">
-    <div class="status-pills-col">
-      <span class="status-text-green" id="simTelemetryPill" style="cursor: pointer;" title="Click to pause/resume simulation">
+  <!-- Live Status Indicators -->
+  <div class="telemetry-status-subbar">
+    <div class="telemetry-status-pills">
+      <span class="telemetry-pill-item" id="simTelemetryPill" style="cursor: pointer;" title="Click to pause/resume simulation">
         ESP32 Simulator: Telemetry: ON
       </span>
-      <span class="status-text-green">
+      <span class="telemetry-pill-item">
         Firebase Connection: Connected
       </span>
     </div>
@@ -100,189 +101,216 @@
 
 
   <!-- =========================================================
-       3. MAIN DASHBOARD CONTENT
+       3. STACKED MAIN DECK (Boxes One by One Below)
        ========================================================= -->
-  <main class="dashboard-main-wrapper">
+  <main class="stacked-deck-container">
 
-    <!-- CARD 1 (TOP CENTER): ENVIRONMENT STATUS & GAUGES -->
-    <section class="center-status-card">
-      <div class="gauges-top-row">
+    <!-- =====================================================
+         BOX 1: REAL-TIME ENVIRONMENT (Top Box)
+         ===================================================== -->
+    <section class="stacked-box-card">
+      <div class="box-header-row">
+        <h2 class="box-title-main">
+          <span>🌡️</span> Real-Time Environment
+        </h2>
+        <span class="box-meta-badge">DHT11 & LDR Telemetry · Live</span>
+      </div>
 
-        <!-- Col 1: Temperature Semi-Circular Arc -->
-        <div class="gauge-item-col">
-          <span class="gauge-label">Temperature</span>
-          <div class="semi-gauge-box">
-            <svg class="semi-gauge-svg" viewBox="0 0 120 64">
-              <!-- Background Gray Track Arc -->
-              <path d="M 12 56 A 48 48 0 0 1 108 56" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="9" stroke-linecap="round" />
-              <!-- Foreground Orange-to-Red Progress Arc -->
+      <!-- Gauges Grid Row -->
+      <div class="env-gauges-grid">
+        <!-- Temperature Semi-Circular Arc Gauge -->
+        <div class="env-gauge-unit">
+          <span class="env-gauge-label">Temperature</span>
+          <div class="arc-gauge-stage">
+            <svg class="arc-gauge-canvas" viewBox="0 0 140 75">
+              <path d="M 14 66 A 56 56 0 0 1 126 66" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="11" stroke-linecap="round" />
               <defs>
-                <linearGradient id="tempGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <linearGradient id="gradTemp" x1="0%" y1="0%" x2="100%" y2="0%">
                   <stop offset="0%" stop-color="#f97316" />
                   <stop offset="100%" stop-color="#ef4444" />
                 </linearGradient>
               </defs>
-              <path id="tempArcForeground" d="M 12 56 A 48 48 0 0 1 108 56" fill="none" stroke="url(#tempGradient)" stroke-width="9" stroke-linecap="round" stroke-dasharray="150.8" stroke-dashoffset="52" style="transition: stroke-dashoffset 0.6s ease;" />
+              <path id="tempArcForeground" d="M 14 66 A 56 56 0 0 1 126 66" fill="none" stroke="url(#gradTemp)" stroke-width="11" stroke-linecap="round" stroke-dasharray="175.9" stroke-dashoffset="60" style="transition: stroke-dashoffset 0.6s ease;" />
             </svg>
-            <span class="gauge-inner-val" id="tempGaugeVal">25.7 °C</span>
+            <span class="gauge-numeric-text" id="tempGaugeVal">25.7 °C</span>
           </div>
         </div>
 
-        <!-- Col 2: Humidity Semi-Circular Arc -->
-        <div class="gauge-item-col">
-          <span class="gauge-label">Humidity</span>
-          <div class="semi-gauge-box">
-            <svg class="semi-gauge-svg" viewBox="0 0 120 64">
-              <!-- Background Gray Track Arc -->
-              <path d="M 12 56 A 48 48 0 0 1 108 56" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="9" stroke-linecap="round" />
-              <!-- Foreground Cyan-to-Blue Progress Arc -->
+        <!-- Humidity Semi-Circular Arc Gauge -->
+        <div class="env-gauge-unit">
+          <span class="env-gauge-label">Humidity</span>
+          <div class="arc-gauge-stage">
+            <svg class="arc-gauge-canvas" viewBox="0 0 140 75">
+              <path d="M 14 66 A 56 56 0 0 1 126 66" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="11" stroke-linecap="round" />
               <defs>
-                <linearGradient id="humGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <linearGradient id="gradHum" x1="0%" y1="0%" x2="100%" y2="0%">
                   <stop offset="0%" stop-color="#06b6d4" />
                   <stop offset="100%" stop-color="#3b82f6" />
                 </linearGradient>
               </defs>
-              <path id="humArcForeground" d="M 12 56 A 48 48 0 0 1 108 56" fill="none" stroke="url(#humGradient)" stroke-width="9" stroke-linecap="round" stroke-dasharray="150.8" stroke-dashoffset="45" style="transition: stroke-dashoffset 0.6s ease;" />
+              <path id="humArcForeground" d="M 14 66 A 56 56 0 0 1 126 66" fill="none" stroke="url(#gradHum)" stroke-width="11" stroke-linecap="round" stroke-dasharray="175.9" stroke-dashoffset="52" style="transition: stroke-dashoffset 0.6s ease;" />
             </svg>
-            <span class="gauge-inner-val" id="humGaugeVal">70 %</span>
+            <span class="gauge-numeric-text" id="humGaugeVal">70 %</span>
           </div>
         </div>
 
-        <!-- Col 3: Ambient Light Sun Icon & Value -->
-        <div class="gauge-item-col">
-          <span class="gauge-label">Ambient Light</span>
-          <div class="ambient-light-box">
-            <span class="ambient-sun-icon">☀️</span>
-            <span class="ambient-val-large" id="ambientLightVal">353</span>
+        <!-- Ambient Light Sensor -->
+        <div class="env-gauge-unit">
+          <span class="env-gauge-label">Ambient Light</span>
+          <div class="ambient-sensor-box">
+            <span class="sun-icon-glyph">☀️</span>
+            <span class="ambient-lux-text" id="ambientLightVal">353</span>
           </div>
         </div>
-
       </div>
 
-      <!-- Bottom Operating Mode Caption -->
-      <div class="center-mode-caption">
-        Operating Mode <strong id="operatingModeDisplay">AUTOMATIC</strong>
+      <!-- Operating Mode Center Footer -->
+      <div class="env-mode-footer">
+        <span>Operating Mode</span>
+        <strong id="operatingModeDisplay">AUTOMATIC</strong>
+        <span class="glowing-green-beacon"></span>
       </div>
     </section>
 
 
-    <!-- BOTTOM 2-COLUMN GRID -->
-    <div class="bottom-dashboard-grid">
+    <!-- =====================================================
+         BOX 2: APPLIANCE CONTROL HUB (Middle Box 1)
+         ===================================================== -->
+    <section class="stacked-box-card">
+      <div class="box-header-row">
+        <h2 class="box-title-main">
+          <span>💡</span> Appliance Control Hub
+        </h2>
+        <span class="box-meta-badge">Relay Output GPIO 26</span>
+      </div>
 
-      <!-- =====================================================
-           CARD 2 (LEFT): APPLIANCE CONTROL CENTER
-           ===================================================== -->
-      <section class="appliance-control-center-card">
-        <h2 class="control-center-title">Appliance Control Center</h2>
+      <div class="appliance-main-deck">
+        <!-- Left: Smart Bulb Hero Showcase -->
+        <div class="bulb-hero-showcase">
+          <span class="bulb-hero-label">Main Bulb</span>
+          <div class="bulb-art-wrap">
+            <div class="bulb-ambient-halo on" id="bulbHeroHalo"></div>
+            <svg id="bulbHeroSvg" class="bulb-svg-stencil on" viewBox="0 0 24 24">
+              <path d="M9 18h6m-4 3h2m-7-9.5A7 7 0 1 1 18 11.5c0 2.2-1.2 3.8-2 4.5H8c-.8-.7-2-2.3-2-4.5z"/>
+            </svg>
+          </div>
+          <span id="bulbPowerBadge" class="bulb-power-badge on">POWER ON</span>
+        </div>
 
-        <div class="bulb-control-row">
-          <!-- Left side: Wire bulb + big toggle -->
-          <div class="bulb-left-group">
-            <div class="bulb-heading-wrap">
-              <svg class="bulb-icon-wire" viewBox="0 0 24 24">
-                <path d="M9 18h6m-4 3h2m-7-9.5A7 7 0 1 1 18 11.5c0 2.2-1.2 3.8-2 4.5H8c-.8-.7-2-2.3-2-4.5z"/>
-              </svg>
-              <span>Main Bulb</span>
-            </div>
-
-            <!-- Big Interactive Switcher Toggle -->
-            <div class="big-toggle-wrap" id="bigToggleWrap" title="Click to Toggle Main Bulb">
-              <div class="big-toggle-track on" id="bigToggleTrack">
-                <div class="big-toggle-knob"></div>
+        <!-- Right: Interactive Control Switches -->
+        <div class="controls-interactive-column">
+          <!-- Big Toggle Switch Row -->
+          <div class="toggle-switch-card-row">
+            <div class="large-switch-container" id="bigToggleWrap" title="Click to Toggle Bulb">
+              <div class="large-switch-track on" id="bigToggleTrack">
+                <div class="large-switch-knob"></div>
               </div>
-              <span class="toggle-status-label" id="toggleStatusLabel">ON</span>
+              <span class="large-switch-caption" id="toggleStatusCaption">ON</span>
+            </div>
+
+            <!-- Turn ON / Turn OFF Buttons -->
+            <div class="button-command-grid" style="flex: 1; margin-left: 20px;">
+              <button id="btnTurnOn" class="btn-command-wire btn-cmd-turn-on" type="button">Turn ON</button>
+              <button id="btnTurnOff" class="btn-command-wire btn-cmd-turn-off" type="button">Turn OFF</button>
+              <button id="btnModeManual" class="btn-command-wire btn-cmd-manual" type="button">Manual</button>
+              <button id="btnModeAuto" class="btn-command-wire btn-cmd-auto active" type="button">Automatic</button>
             </div>
           </div>
 
-          <!-- Right side: Turn ON / OFF buttons & Mode buttons -->
-          <div class="bulb-right-group">
-            <!-- Row 1: Turn ON / Turn OFF -->
-            <div class="btn-pair-row">
-              <button id="btnTurnOn" class="btn-turn-on-wire" type="button">Turn ON</button>
-              <button id="btnTurnOff" class="btn-turn-off-wire" type="button">Turn OFF</button>
+          <!-- Automatic Threshold Slider Panel -->
+          <div class="threshold-interactive-panel">
+            <div class="threshold-panel-top">
+              <span class="threshold-panel-title">Automatic Threshold Slider</span>
+              <span class="threshold-readout-pill" id="thresholdValueNum">400</span>
             </div>
 
-            <!-- Row 2: Manual / Automatic -->
-            <div class="btn-pair-row">
-              <button id="btnModeManual" class="btn-mode-exact-manual" type="button">Manual</button>
-              <button id="btnModeAuto" class="btn-mode-exact-auto active" type="button">Automatic</button>
+            <div class="threshold-slider-track-row">
+              <input type="range" id="thresholdSlider" class="pro-purple-slider" min="100" max="1000" step="10" value="400">
             </div>
+
+            <p class="threshold-guidance-text">
+              In Automatic mode, the ESP32 uses this threshold to decide whether the bulb should turn ON or OFF.
+            </p>
           </div>
         </div>
+      </div>
+    </section>
 
-        <!-- Automatic Threshold Slider -->
-        <div class="threshold-exact-section">
-          <span class="threshold-exact-title">Automatic Threshold Slider</span>
-          
-          <div class="slider-exact-row">
-            <input type="range" id="thresholdSlider" class="purple-range-slider" min="100" max="1000" step="10" value="400">
-            <span class="threshold-number-indicator" id="thresholdValueNum">400</span>
-          </div>
 
-          <p class="threshold-explain-text">
-            In Automatic mode, the ESP32 uses this threshold to decide whether the bulb should turn ON or OFF.
-          </p>
+    <!-- =====================================================
+         BOX 3: HISTORICAL ANALYTICS (Middle Box 2)
+         ===================================================== -->
+    <section class="stacked-box-card">
+      <div class="box-header-row">
+        <h2 class="box-title-main">
+          <span>📈</span> Historical Analytics
+        </h2>
+
+        <!-- Custom Centered Legend Matching User's Design -->
+        <div class="analytics-legend-cluster">
+          <div><span class="legend-swatch blue"></span> Temperature</div>
+          <div><span class="legend-swatch green"></span> Humidity</div>
+          <div><span class="legend-swatch orange"></span> LDR/10</div>
         </div>
-      </section>
+      </div>
+
+      <!-- Chart.js Line Graph Canvas -->
+      <div class="analytics-chart-container">
+        <canvas id="stackedAnalyticsChart"></canvas>
+      </div>
+    </section>
 
 
-      <!-- =====================================================
-           CARD 3 (RIGHT): HISTORICAL ANALYTICS (PAGE 2)
-           ===================================================== -->
-      <section class="historical-analytics-exact-card">
-        <div class="history-card-header">
-          <h2 class="history-card-title">
-            Historical Analytics <span>(Page 2)</span>
-          </h2>
+    <!-- =====================================================
+         BOX 4: COMPREHENSIVE EVENT LOG & SENSOR HISTORY (Bottom Box)
+         ===================================================== -->
+    <section class="stacked-box-card">
+      <div class="box-header-row">
+        <h2 class="box-title-main">
+          <span>📋</span> Comprehensive Event Log
+        </h2>
+        <span class="box-meta-badge" id="eventCountBadge">6 Events</span>
+      </div>
 
-          <!-- Exact Chart Legend -->
-          <div class="exact-chart-legend">
-            <div><span class="legend-square temp"></span> Temperature</div>
-            <div><span class="legend-square hum"></span> Humidity</div>
-            <div><span class="legend-square ldr"></span> LDR/10</div>
-          </div>
-        </div>
+      <!-- Event Table Toolbar -->
+      <div class="event-log-toolbar">
+        <input type="text" id="eventSearchInput" class="event-search-field" placeholder="🔍 Search event records...">
+      </div>
 
-        <!-- Line Graph Canvas -->
-        <div class="exact-chart-wrap">
-          <canvas id="exactHistoricalChart"></canvas>
-          <div class="chart-watermark-star">✦</div>
-        </div>
+      <!-- Scrollable Comprehensive Table -->
+      <div class="event-table-scrollbox">
+        <table class="pro-event-table">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Temperature (°C)</th>
+              <th>Humidity (%)</th>
+              <th>LDR</th>
+              <th>Bulb</th>
+              <th>Mode</th>
+              <th>Event Description</th>
+            </tr>
+          </thead>
+          <tbody id="comprehensiveEventTableBody">
+            <!-- Dynamically Rendered Event Rows -->
+          </tbody>
+        </table>
+      </div>
 
-        <!-- Sub-table: Sensor History -->
-        <div class="mini-sensor-table-container">
-          <table class="mini-sensor-table">
-            <thead>
-              <tr>
-                <th>Sensor History</th>
-                <th>Temperature (°C)</th>
-                <th>Humidity (%)</th>
-                <th>LDR</th>
-                <th>Mode</th>
-              </tr>
-            </thead>
-            <tbody id="miniSensorHistoryBody">
-              <!-- Dynamically populated rows -->
-            </tbody>
-          </table>
-        </div>
-
-        <!-- CSV Download Action -->
-        <div class="exact-csv-action-row">
-          <button id="btnDownloadCsv" class="btn-exact-csv" type="button">
-            ↓ Download CSV
-          </button>
-        </div>
-      </section>
-
-    </div>
+      <!-- Footer Action -->
+      <div class="event-table-footer-bar">
+        <button id="btnDownloadCsv" class="btn-csv-download-pro" type="button">
+          <span>↓</span> Download CSV
+        </button>
+      </div>
+    </section>
 
   </main>
 
-  <!-- Toast Notification Viewport -->
-  <div id="exactToastContainer" class="exact-toast-container"></div>
+  <!-- Toast Notification Host -->
+  <div id="stackedToastHost" class="stacked-toast-host"></div>
 
-  <!-- Application Controller -->
-  <script src="js/app-exact.js"></script>
+  <!-- Application Engine Script -->
+  <script src="js/app-stacked.js"></script>
 </body>
 </html>
