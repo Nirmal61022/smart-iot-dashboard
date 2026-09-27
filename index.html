@@ -1,192 +1,290 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SmartHome IoT Dashboard</title>
-  <meta name="description" content="Real-time ESP32 Smart Home IoT Dashboard & Historical Sensor Data SPA">
-  <link rel="stylesheet" href="css/dashboard-spa.css">
-  <!-- Chart.js for Historical Sensor Graph -->
+  <title>SmartHome IoT Dashboard · Executive Cloud Platform</title>
+  <meta name="description" content="Next-Gen ESP32 Smart Home IoT Dashboard & Historical Sensor Data Single Page Application">
+  
+  <!-- Modern Stylesheet -->
+  <link rel="stylesheet" href="css/dashboard-pro.css">
+  
+  <!-- Chart.js CDN for Historical Analytics Graph -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 </head>
 <body>
 
   <!-- =========================================================
-       1. AUTH / LOGIN VIEW (Displays when user is not signed in)
+       1. ADVANCED AUTHENTICATION EXPERIENCE (Glassmorphism SPA)
        ========================================================= -->
-  <div id="authView" class="auth-container" style="display: none;">
-    <div class="auth-card">
-      <div class="auth-header">
-        <div class="auth-brand-logo">
-          <!-- Firebase / IoT Flame Icon -->
+  <div id="proAuthView" class="auth-wrapper" style="display: none;">
+    <!-- Ambient glowing orbs -->
+    <div class="auth-ambient-orb orb-1"></div>
+    <div class="auth-ambient-orb orb-2"></div>
+
+    <div class="auth-glass-card">
+      <div class="auth-top-banner">
+        <div class="auth-chip-badge">
+          <span class="pulse-dot"></span>
+          <span>ESP32 Cloud Gateway</span>
+        </div>
+
+        <div class="auth-brand-icon">
+          <!-- Smart IoT Flame / Chip SVG -->
           <svg viewBox="0 0 24 24">
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
           </svg>
         </div>
-        <h1 class="auth-title" id="authTitle">Welcome back</h1>
-        <p class="auth-subtitle" id="authSubtitle">Sign in to access your IoT Dashboard.</p>
+
+        <h1 class="auth-headline" id="authHeadline">Welcome Back</h1>
+        <p class="auth-subheadline" id="authSubheadline">Sign in to access your IoT Dashboard.</p>
       </div>
 
-      <div class="auth-notice-badge">
-        <span>⚡</span>
-        <div><strong>Client-Side Local Storage:</strong> All user accounts and active sessions are stored locally in your browser for seamless static hosting.</div>
+      <!-- LocalStorage Notice Callout -->
+      <div class="auth-local-notice">
+        <span class="icon">⚡</span>
+        <div><strong>Client-Side Local Storage:</strong> User accounts & active sessions persist securely in your browser for 100% serverless static hosting.</div>
       </div>
 
-      <div class="auth-tabs">
-        <button id="tabSignIn" class="auth-tab-btn active" type="button">Sign In</button>
-        <button id="tabSignUp" class="auth-tab-btn" type="button">Create Account</button>
+      <!-- Sign In / Register Tabs -->
+      <div class="auth-nav-tabs">
+        <button id="tabSignIn" class="auth-tab-trigger active" type="button">Sign In</button>
+        <button id="tabSignUp" class="auth-tab-trigger" type="button">Create Account</button>
       </div>
 
-      <form id="authForm" class="auth-body-form">
-        <div id="authAlert" class="auth-alert"></div>
+      <!-- Auth Form -->
+      <form id="proAuthForm" class="auth-form-container">
+        <div id="authFeedbackBox" class="auth-feedback-box"></div>
 
-        <div class="form-group">
-          <label for="authEmail">Email Address</label>
-          <div class="form-input-wrap">
-            <input type="email" id="authEmail" class="form-input" placeholder="nirmal.18@proto.tech" autocomplete="email" required>
+        <div class="pro-input-group">
+          <label class="pro-input-label" for="proEmailInput">
+            <span>Email Address</span>
+          </label>
+          <div class="pro-input-box">
+            <input type="email" id="proEmailInput" placeholder="nirmal.18@proto.tech" autocomplete="email" required>
           </div>
         </div>
 
-        <div class="form-group">
-          <label for="authPassword">Password</label>
-          <div class="form-input-wrap">
-            <input type="password" id="authPassword" class="form-input" placeholder="••••••••" autocomplete="current-password" minlength="6" required>
-            <button type="button" id="togglePassword" class="password-toggle-btn">Show</button>
+        <div class="pro-input-group">
+          <label class="pro-input-label" for="proPasswordInput">
+            <span>Password</span>
+          </label>
+          <div class="pro-input-box">
+            <input type="password" id="proPasswordInput" placeholder="••••••••" autocomplete="current-password" minlength="6" required>
+            <button type="button" id="togglePasswordBtn" class="input-action-btn">Show</button>
           </div>
         </div>
 
-        <button type="submit" id="authSubmitBtn" class="btn-submit-auth">Sign In</button>
+        <button type="submit" id="btnSubmitAuth" class="btn-auth-primary">
+          <span>Sign In to Dashboard</span> →
+        </button>
 
-        <div class="auth-divider">
-          <span>OR QUICK ACCESS</span>
+        <div class="auth-split-line">
+          <span>OR DIRECT ACCESS</span>
         </div>
 
-        <button type="button" id="demoSignInBtn" class="btn-demo-auth">
+        <button type="button" id="demoQuickBtn" class="btn-demo-quick">
           <span>🚀 One-Click Demo Sign In (nirmal.18@proto.tech)</span>
         </button>
       </form>
 
-      <div class="auth-footer">
-        SmartHome IoT Dashboard · ESP32 Connected Environment
+      <div class="auth-card-footer">
+        SmartHome IoT Platform · ESP32 Environment Automation
       </div>
     </div>
   </div>
 
 
   <!-- =========================================================
-       2. MAIN DASHBOARD SPA (Displays when user is signed in)
+       2. MAIN DASHBOARD SPA (Single Page Application Deck)
        ========================================================= -->
-  <div id="appView" style="display: none;">
-    <!-- Top Navbar (Exact match to Screenshot 2) -->
-    <header class="navbar">
-      <div class="navbar-brand">
-        SmartHome IoT Dashboard
+  <div id="proAppView" style="display: none;">
+    <!-- Top Executive Navigation Bar -->
+    <header class="pro-navbar">
+      <div class="nav-brand-group">
+        <div class="brand-icon-box">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+          </svg>
+        </div>
+        <div class="brand-text-block">
+          <h1>SmartHome IoT Dashboard</h1>
+          <span>Connected Environment Intelligence</span>
+        </div>
       </div>
-      <div class="navbar-actions">
-        <span class="navbar-user-email" id="navbarUserEmail">nirmal.18@proto.tech</span>
-        <button id="signOutBtn" class="btn-signout" type="button">Sign Out</button>
+
+      <!-- Right Navbar Controls -->
+      <div class="nav-controls-right">
+        <!-- Live Firebase Connection Beacon -->
+        <div class="connection-beacon">
+          <span class="beacon-dot"></span>
+          <span>Firebase Connection: <strong class="beacon-status">Connected</strong></span>
+        </div>
+
+        <!-- User Identity Chip -->
+        <div class="user-identity-chip">
+          <div class="user-avatar-circle">N</div>
+          <span class="user-email-text" id="navbarUserEmail">nirmal.18@proto.tech</span>
+        </div>
+
+        <!-- Theme Toggle Button -->
+        <button id="btnThemeSwitch" class="btn-theme-switch" type="button" title="Toggle Light / Dark Mode">
+          🌙
+        </button>
+
+        <!-- Sign Out Button -->
+        <button id="btnSignOut" class="btn-pro-signout" type="button">
+          Sign Out
+        </button>
       </div>
     </header>
 
-    <!-- SPA Sub-navigation Bar -->
-    <div class="spa-subnav-bar">
-      <div class="spa-nav-tabs">
-        <button class="spa-tab-btn active" data-spa-view="both" type="button">
-          📋 Combined View
+    <!-- SPA Sub-Bar (View Switcher & Telemetry HUD) -->
+    <div class="pro-subbar">
+      <div class="spa-tab-pills">
+        <button class="spa-tab-pill-btn active" data-view-target="both" type="button">
+          📋 Unified Deck
         </button>
-        <button class="spa-tab-btn" data-spa-view="controls" type="button">
-          🎛️ Real-time Controls (Page 1)
+        <button class="spa-tab-pill-btn" data-view-target="controls" type="button">
+          🎛️ Real-Time Controls (Page 1)
         </button>
-        <button class="spa-tab-btn" data-spa-view="history" type="button">
+        <button class="spa-tab-pill-btn" data-view-target="history" type="button">
           📈 Historical Analytics (Page 2)
         </button>
       </div>
-      <div class="sim-control-pill">
-        <span>ESP32 Simulator:</span>
-        <button id="simToggleBtn" class="sim-toggle-btn active" type="button">Telemetry: ON</button>
+
+      <div class="sim-hud-badge">
+        <span>ESP32 Hardware Stream:</span>
+        <button id="simHudToggle" class="sim-hud-btn" type="button">Telemetry: LIVE</button>
       </div>
     </div>
 
-    <!-- Main Content Container -->
-    <main class="dashboard-container">
+    <!-- Main Dashboard Deck -->
+    <main class="dashboard-deck">
 
       <!-- =====================================================
-           PAGE 1 SECTION: REAL-TIME CONTROLS & STATUS
-           (Exact replica of Screenshot 2)
+           PAGE 1 SECTION: REAL-TIME CONTROLS & APPLIANCES
            ===================================================== -->
-      <section id="pageRealtimeSection" style="display: flex; flex-direction: column; gap: 20px;">
-        
-        <!-- Firebase Connection Status Banner -->
-        <div class="card firebase-banner">
-          <span class="firebase-banner-label">Firebase Connection:</span>
-          <span class="firebase-status-text">Connected</span>
+      <section id="pageRealtimeHub" style="display: flex; flex-direction: column; gap: 24px;">
+
+        <!-- 4 Advanced Metric Cards -->
+        <div class="pro-metrics-grid">
+          <!-- Metric 1: Temperature -->
+          <article class="pro-metric-card">
+            <div class="metric-card-top">
+              <span class="metric-card-label">Temperature</span>
+              <div class="metric-icon-bubble bubble-blue">🌡️</div>
+            </div>
+            <div class="metric-big-value" id="valTemperature">-- °C</div>
+            <div class="metric-card-bottom">
+              <span>DHT11 Sensor</span>
+              <span class="metric-status-tag">Optimal Range</span>
+            </div>
+          </article>
+
+          <!-- Metric 2: Humidity -->
+          <article class="pro-metric-card">
+            <div class="metric-card-top">
+              <span class="metric-card-label">Humidity</span>
+              <div class="metric-icon-bubble bubble-green">💧</div>
+            </div>
+            <div class="metric-big-value" id="valHumidity">-- %</div>
+            <div class="metric-card-bottom">
+              <span>Relative Humidity</span>
+              <span class="metric-status-tag">Comfort Level</span>
+            </div>
+          </article>
+
+          <!-- Metric 3: Ambient Light -->
+          <article class="pro-metric-card">
+            <div class="metric-card-top">
+              <span class="metric-card-label">Ambient Light</span>
+              <div class="metric-icon-bubble bubble-amber">☀</div>
+            </div>
+            <div class="metric-big-value" id="valAmbientLight">--</div>
+            <div class="metric-card-bottom">
+              <span>LDR ADC Pin 34</span>
+              <span class="metric-status-tag">Lux Scaled</span>
+            </div>
+          </article>
+
+          <!-- Metric 4: Operating Mode -->
+          <article class="pro-metric-card">
+            <div class="metric-card-top">
+              <span class="metric-card-label">Operating Mode</span>
+              <div class="metric-icon-bubble bubble-purple">⚙️</div>
+            </div>
+            <div class="metric-big-value mode-text" id="valOperatingMode">AUTOMATIC</div>
+            <div class="metric-card-bottom">
+              <span>ESP32 Authority</span>
+              <span class="metric-status-tag">Cloud Synced</span>
+            </div>
+          </article>
         </div>
 
-        <!-- 4 Metric Cards Row -->
-        <div class="metrics-grid">
-          <!-- Temperature Card -->
-          <div class="metric-card">
-            <div class="metric-header">Temperature</div>
-            <div class="metric-value" id="metricTemp">-- °C</div>
-          </div>
-
-          <!-- Humidity Card -->
-          <div class="metric-card">
-            <div class="metric-header">Humidity</div>
-            <div class="metric-value" id="metricHum">-- %</div>
-          </div>
-
-          <!-- Ambient Light Card -->
-          <div class="metric-card">
-            <div class="metric-header">Ambient Light</div>
-            <div class="metric-value" id="metricLight">--</div>
-          </div>
-
-          <!-- Operating Mode Card -->
-          <div class="metric-card">
-            <div class="metric-header">Operating Mode</div>
-            <div class="metric-value mode-val" id="metricMode">MANUAL</div>
-          </div>
-        </div>
-
-        <!-- Appliance Control Card -->
-        <div class="card appliance-control-card">
-          <div class="appliance-control-title">Appliance Control</div>
-
-          <!-- Row 1: Main Bulb -->
-          <div class="control-row">
-            <div class="control-label-group">
-              <span class="control-label-sub">Main Bulb</span>
-              <span class="control-status-text" id="bulbStatusText">Status: OFF</span>
+        <!-- Appliance Control Deck -->
+        <div class="appliance-deck">
+          <!-- Control Panel -->
+          <div class="pro-card control-deck-main">
+            <div class="card-title-row">
+              <h2>Appliance Control</h2>
+              <span class="card-header-badge">Relay Ready · Pin 26</span>
             </div>
-            <div class="control-btn-group">
-              <button id="btnTurnOn" class="btn-control btn-turn-on" type="button">Turn ON</button>
-              <button id="btnTurnOff" class="btn-control btn-turn-off" type="button">Turn OFF</button>
-            </div>
-          </div>
 
-          <!-- Row 2: Operating Mode -->
-          <div class="control-row">
-            <div class="control-mode-title">Operating Mode</div>
-            <div class="control-btn-group">
-              <button id="btnModeManual" class="btn-control btn-mode-manual active" type="button">Manual</button>
-              <button id="btnModeAuto" class="btn-control btn-mode-auto" type="button">Automatic</button>
-            </div>
-          </div>
-
-          <!-- Row 3: Callout Banner for Automatic LDR Threshold -->
-          <div class="threshold-callout">
-            <div class="threshold-header-row">
-              <div class="threshold-title">
-                Automatic LDR Threshold: <span class="threshold-number" id="thresholdVal">400</span>
+            <!-- Main Bulb Control Row -->
+            <div class="pro-device-row">
+              <div class="device-info-col">
+                <span>Main Smart Bulb</span>
+                <div class="device-status-badge off" id="mainBulbStatusBadge">Status: OFF</div>
+              </div>
+              <div class="device-btn-group">
+                <button id="btnBulbOn" class="btn-tactile btn-bulb-on" type="button">
+                  Turn ON
+                </button>
+                <button id="btnBulbOff" class="btn-tactile btn-bulb-off" type="button">
+                  Turn OFF
+                </button>
               </div>
             </div>
-            <div class="threshold-description">
-              In Automatic mode, the ESP32 can use this threshold to decide whether the bulb should turn ON or OFF.
+
+            <!-- Operating Mode Switcher Row -->
+            <div class="pro-mode-row">
+              <span class="pro-mode-label">Operating Mode</span>
+              <div class="mode-selector-segmented">
+                <button id="btnModeManual" class="btn-mode-pill" type="button">Manual</button>
+                <button id="btnModeAuto" class="btn-mode-pill active auto" type="button">Automatic</button>
+              </div>
             </div>
-            <div class="threshold-slider-row">
-              <input type="range" id="thresholdSlider" class="threshold-slider" min="100" max="1000" step="10" value="400" title="Adjust LDR Threshold">
-              <span class="threshold-slider-val" id="thresholdSliderVal">400</span>
+
+            <!-- Automatic LDR Threshold Callout -->
+            <div class="threshold-pro-callout">
+              <div class="threshold-header-pro">
+                <span class="threshold-title-pro">Automatic LDR Threshold:</span>
+                <span class="threshold-number-badge" id="thresholdValDisplay">400</span>
+              </div>
+              <p class="threshold-note-pro">
+                In Automatic mode, the ESP32 can use this threshold to decide whether the bulb should turn ON or OFF.
+              </p>
+              <div class="slider-deck-row">
+                <span class="slider-endpoint-label">100 (Dark)</span>
+                <input type="range" id="thresholdRange" class="pro-slider" min="100" max="1000" step="10" value="400">
+                <span class="slider-endpoint-label">1000 (Bright)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3D / Glowing Visual Bulb Card -->
+          <div class="pro-card bulb-visualizer-card">
+            <div class="bulb-art-container">
+              <div class="bulb-glow-halo" id="bulbGlowHalo"></div>
+              <!-- High-res Smart Bulb SVG -->
+              <svg id="bulbSvgIcon" class="bulb-svg-icon" viewBox="0 0 24 24">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.87-3.13-7-7-7zm-2 19h4c0 .55-.45 1-1 1h-2c-.55 0-1-.45-1-1zm3-3h-2v-1h2v1z"/>
+              </svg>
+            </div>
+            <div class="bulb-live-caption" id="bulbStateCaption">
+              <h3>Smart Bulb: Standby</h3>
+              <p>Relay Pin 26 Disengaged · Energy saver mode.</p>
             </div>
           </div>
         </div>
@@ -196,42 +294,50 @@
 
       <!-- =====================================================
            PAGE 2 SECTION: HISTORICAL SENSOR DATA & LOGS
-           (Exact replica of Screenshot 1)
            ===================================================== -->
-      <section id="pageHistoricalSection" style="display: flex; flex-direction: column; gap: 20px;">
+      <section id="pageHistoricalHub" class="historical-deck-section">
         
-        <!-- Historical Sensor Data Card with Chart -->
-        <div class="card historical-card">
-          <div class="historical-title">Historical Sensor Data</div>
-
-          <!-- Centered Custom Legend Matching Screenshot 1 -->
-          <div class="chart-custom-legend">
-            <div class="legend-item">
-              <span class="legend-color-box temp"></span>
-              <span>Temperature (°C)</span>
-            </div>
-            <div class="legend-item">
-              <span class="legend-color-box humidity"></span>
-              <span>Humidity (%)</span>
-            </div>
-            <div class="legend-item">
-              <span class="legend-color-box ldr"></span>
-              <span>LDR / 10</span>
+        <!-- Historical Sensor Data Card with Chart.js -->
+        <article class="pro-card chart-deck-card">
+          <div class="card-title-row">
+            <h2>Historical Sensor Data</h2>
+            <!-- Centered Legend matching the screenshot -->
+            <div class="chart-legend-pro">
+              <div class="legend-tag">
+                <span class="legend-color-indicator blue"></span>
+                <span>Temperature (°C)</span>
+              </div>
+              <div class="legend-tag">
+                <span class="legend-color-indicator green"></span>
+                <span>Humidity (%)</span>
+              </div>
+              <div class="legend-tag">
+                <span class="legend-color-indicator amber"></span>
+                <span>LDR / 10</span>
+              </div>
             </div>
           </div>
 
-          <!-- Chart Area -->
-          <div class="chart-container-wrap">
-            <canvas id="historicalSensorChart"></canvas>
+          <!-- Canvas area -->
+          <div class="chart-canvas-wrapper">
+            <canvas id="proHistoricalChart"></canvas>
           </div>
-        </div>
+        </article>
 
         <!-- Sensor History Table Card -->
-        <div class="card history-table-card">
-          <div class="history-title">Sensor History</div>
+        <article class="pro-card history-table-card">
+          <div class="table-toolbar-row">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <h2>Sensor History</h2>
+              <span class="card-header-badge" id="historyCountBadge">6 logs</span>
+            </div>
+            <!-- Search Filter -->
+            <input type="text" id="tableSearch" class="table-search-input" placeholder="🔍 Search records...">
+          </div>
 
-          <div class="table-responsive">
-            <table class="sensor-table">
+          <!-- Table Wrapper -->
+          <div class="table-responsive-box">
+            <table class="pro-data-table">
               <thead>
                 <tr>
                   <th>Timestamp</th>
@@ -242,31 +348,33 @@
                   <th>Mode</th>
                 </tr>
               </thead>
-              <tbody id="sensorHistoryBody">
-                <!-- Dynamically populated rows or "No sensor data available." -->
+              <tbody id="proHistoryTableBody">
+                <!-- Dynamically rendered rows -->
               </tbody>
             </table>
           </div>
 
-          <!-- Actions Row: Download CSV + Utility buttons -->
-          <div class="history-actions-row">
-            <button id="downloadCsvBtn" class="btn-download-csv" type="button">Download CSV</button>
-            <div class="table-aux-actions">
-              <button id="btnSeedHistory" class="btn-aux" type="button">+ Add Sample Log</button>
-              <button id="btnClearHistory" class="btn-aux" type="button">Clear Table</button>
+          <!-- Table Bottom Actions -->
+          <div class="table-bottom-actions">
+            <button id="btnExportCsv" class="btn-csv-pro" type="button">
+              <span>↓</span> Download CSV
+            </button>
+            <div class="table-sub-controls">
+              <button id="btnAddSampleLog" class="btn-aux-pro" type="button">+ Snapshot Log</button>
+              <button id="btnClearTable" class="btn-aux-pro" type="button">Clear Table</button>
             </div>
           </div>
-        </div>
+        </article>
 
       </section>
 
     </main>
   </div>
 
-  <!-- Toast Notification Container -->
-  <div id="toastContainer" class="toast-box"></div>
+  <!-- Toast Notification Viewport -->
+  <div id="proToastContainer" class="pro-toast-viewport"></div>
 
-  <!-- Application Script -->
-  <script src="js/app-spa.js"></script>
+  <!-- Application Engine Script -->
+  <script src="js/app-pro.js"></script>
 </body>
 </html>
