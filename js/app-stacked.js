@@ -45,7 +45,12 @@ class LocalAuthManager {
       users = [DEFAULT_DEMO_USER];
       localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
     }
-    return this.getCurrentSession();
+    let session = this.getCurrentSession();
+    if (!session) {
+      // Auto-establish demo session so user immediately sees the stacked dashboard!
+      session = this.createSession(DEFAULT_DEMO_USER);
+    }
+    return session;
   }
 
   static getUsers() {
