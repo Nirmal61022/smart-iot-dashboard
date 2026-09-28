@@ -45,12 +45,8 @@ class LocalAuthManager {
       users = [DEFAULT_DEMO_USER];
       localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
     }
-    let session = this.getCurrentSession();
-    if (!session) {
-      // Auto-establish demo session so user immediately sees the stacked dashboard!
-      session = this.createSession(DEFAULT_DEMO_USER);
-    }
-    return session;
+    // Return current session (null if not logged in, keeping login page as the first page!)
+    return this.getCurrentSession();
   }
 
   static getUsers() {
@@ -320,11 +316,23 @@ class StackedDashboardApp {
 
   static showAuth() {
     document.getElementById('authPopupOverlay').style.display = 'flex';
+    const nav = document.getElementById('topNavbar');
+    const sub = document.getElementById('subStatusBar');
+    const main = document.getElementById('mainDeckContainer');
+    if (nav) nav.style.display = 'none';
+    if (sub) sub.style.display = 'none';
+    if (main) main.style.display = 'none';
     this.stopSimulation();
   }
 
   static showDashboard() {
     document.getElementById('authPopupOverlay').style.display = 'none';
+    const nav = document.getElementById('topNavbar');
+    const sub = document.getElementById('subStatusBar');
+    const main = document.getElementById('mainDeckContainer');
+    if (nav) nav.style.display = 'flex';
+    if (sub) sub.style.display = 'flex';
+    if (main) main.style.display = 'flex';
 
     // Set user email
     const emailEl = document.getElementById('userEmailDisplay');
