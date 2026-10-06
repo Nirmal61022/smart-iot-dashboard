@@ -1,0 +1,899 @@
+/* ============================================================
+   SmartHome IoT Dashboard - Exact Replicant UI (Cyber Grid Theme)
+   Matches reference screenshot pixel-for-pixel
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap');
+
+:root {
+  --bg-color: #0b111e;
+  --card-bg: rgba(14, 22, 38, 0.92);
+  --card-border: rgba(59, 130, 246, 0.3);
+  --card-glow: 0 0 24px rgba(59, 130, 246, 0.12);
+  
+  --text-white: #ffffff;
+  --text-gray: #94a3b8;
+  --text-dim: #64748b;
+
+  --color-blue: #3b82f6;
+  --color-green: #22c55e;
+  --color-red: #ef4444;
+  --color-purple: #8b5cf6;
+  --color-orange: #f97316;
+  --color-cyan: #06b6d4;
+
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg-color);
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 32px 32px;
+  background-attachment: fixed;
+  color: var(--text-white);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* ============================================================
+   1. TOP NAVIGATION BAR (Exact Match)
+   ============================================================ */
+.exact-navbar {
+  background-color: #0a0f1d;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 12px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.nav-brand-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-white);
+  letter-spacing: -0.01em;
+}
+
+/* Center Nav Tabs */
+.nav-center-tabs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nav-tab-item {
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  color: var(--text-gray);
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.nav-tab-item:hover {
+  color: var(--text-white);
+}
+
+.nav-tab-item.active {
+  background: #1e293b;
+  color: var(--text-white);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Right Nav Controls */
+.nav-right-user {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.user-profile-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-avatar-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.user-email-label {
+  font-size: 0.9rem;
+  color: #cbd5e1;
+  font-weight: 500;
+}
+
+.btn-signout-exact {
+  background-color: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 7px 18px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.btn-signout-exact:hover {
+  background-color: #1d4ed8;
+}
+
+.btn-signout-exact:active {
+  transform: scale(0.98);
+}
+
+/* Status Banner under Navbar (Right Aligned) */
+.sub-status-bar {
+  max-width: 1240px;
+  margin: 10px auto 0;
+  padding: 0 24px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.status-pills-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.status-text-green {
+  color: var(--color-green);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ============================================================
+   2. AUTHENTICATION MODAL (LocalStorage)
+   ============================================================ */
+.auth-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 17, 30, 0.95);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.auth-modal-card {
+  width: 100%;
+  max-width: 440px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-glow), 0 20px 40px rgba(0, 0, 0, 0.6);
+  border-radius: 18px;
+  padding: 32px;
+}
+
+.auth-modal-title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.auth-modal-sub {
+  font-size: 0.85rem;
+  color: var(--text-gray);
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.auth-pill-notice {
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  color: #86efac;
+  line-height: 1.4;
+  margin-bottom: 20px;
+}
+
+.auth-tabs-row {
+  display: flex;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 4px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.auth-tab-btn {
+  flex: 1;
+  padding: 9px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-gray);
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.auth-tab-btn.active {
+  background: #1e293b;
+  color: #ffffff;
+}
+
+.auth-input-group {
+  margin-bottom: 16px;
+}
+
+.auth-input-group label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-gray);
+  margin-bottom: 6px;
+}
+
+.auth-input-field {
+  width: 100%;
+  padding: 11px 14px;
+  background: #090e18;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 0.95rem;
+  outline: none;
+}
+
+.auth-input-field:focus {
+  border-color: var(--color-blue);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.btn-auth-submit {
+  width: 100%;
+  padding: 12px;
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.btn-demo-quick {
+  width: 100%;
+  padding: 11px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 12px;
+}
+
+.auth-alert-message {
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  margin-bottom: 14px;
+  display: none;
+}
+.auth-alert-message.error {
+  display: block;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+}
+
+/* ============================================================
+   3. MAIN DASHBOARD CONTENT (Center Top Card + 2 Columns)
+   ============================================================ */
+.dashboard-main-wrapper {
+  max-width: 1240px;
+  margin: 12px auto 48px;
+  padding: 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* --- Card 1: Center Top Environment Status Card --- */
+.center-status-card {
+  width: 100%;
+  max-width: 680px;
+  margin: 0 auto;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-glow);
+  border-radius: 18px;
+  padding: 22px 28px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.gauges-top-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: center;
+  justify-items: center;
+  gap: 16px;
+}
+
+/* Gauge Item */
+.gauge-item-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.gauge-label {
+  font-size: 0.85rem;
+  color: var(--text-gray);
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.semi-gauge-box {
+  width: 120px;
+  height: 64px;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.semi-gauge-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 120px;
+  height: 64px;
+}
+
+.gauge-inner-val {
+  font-size: 1.35rem;
+  font-weight: 800;
+  font-family: var(--font-family);
+  color: var(--text-white);
+  line-height: 1;
+  z-index: 2;
+  margin-bottom: 2px;
+}
+
+/* Ambient Light Item (Right Column) */
+.ambient-light-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.ambient-sun-icon {
+  font-size: 1.5rem;
+  color: #ffffff;
+}
+
+.ambient-val-large {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--text-white);
+  line-height: 1;
+}
+
+/* Operating Mode Center Caption */
+.center-mode-caption {
+  text-align: center;
+  font-size: 0.95rem;
+  color: var(--text-gray);
+  padding-top: 6px;
+}
+
+.center-mode-caption strong {
+  color: var(--text-white);
+  font-weight: 800;
+  margin-left: 4px;
+}
+
+/* --- Bottom 2-Column Grid --- */
+.bottom-dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.05fr;
+  gap: 22px;
+}
+
+/* ============================================================
+   CARD 2 (LEFT): APPLIANCE CONTROL CENTER
+   ============================================================ */
+.appliance-control-center-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-glow);
+  border-radius: 18px;
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.control-center-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-white);
+}
+
+.bulb-control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.bulb-left-group {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.bulb-heading-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-white);
+}
+
+.bulb-icon-wire {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Large Switcher Toggle */
+.big-toggle-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.big-toggle-track {
+  width: 76px;
+  height: 40px;
+  background-color: #334155;
+  border-radius: 999px;
+  position: relative;
+  transition: background-color 0.25s, box-shadow 0.25s;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.big-toggle-track.on {
+  background-color: #2563eb;
+  box-shadow: 0 0 12px rgba(37, 99, 235, 0.4);
+}
+
+.big-toggle-knob {
+  width: 32px;
+  height: 32px;
+  background-color: #ffffff;
+  border-radius: 50%;
+  position: absolute;
+  top: 3px;
+  left: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  transition: transform 0.25s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+.big-toggle-track.on .big-toggle-knob {
+  transform: translateX(36px);
+}
+
+.toggle-status-label {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+/* Control Buttons (Right Side) */
+.bulb-right-group {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.btn-pair-row {
+  display: flex;
+  gap: 12px;
+}
+
+/* Turn ON / Turn OFF Buttons */
+.btn-turn-on-wire {
+  border: 2px solid #22c55e;
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.04);
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.92rem;
+  padding: 9px 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-turn-on-wire:hover {
+  background: #22c55e;
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.4);
+}
+
+.btn-turn-off-wire {
+  border: 2px solid #ef4444;
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.04);
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.92rem;
+  padding: 9px 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-turn-off-wire:hover {
+  background: #ef4444;
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+}
+
+/* Mode Switcher Buttons (Manual / Automatic) */
+.btn-mode-exact-manual {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #1e293b;
+  color: #ffffff;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.88rem;
+  padding: 8px 22px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-mode-exact-manual.active {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.35);
+}
+
+.btn-mode-exact-auto {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #1e293b;
+  color: #ffffff;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.88rem;
+  padding: 8px 22px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-mode-exact-auto.active {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.35);
+}
+
+/* Automatic Threshold Slider Section */
+.threshold-exact-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.threshold-exact-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-white);
+}
+
+.slider-exact-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.purple-range-slider {
+  flex: 1;
+  height: 6px;
+  accent-color: #8b5cf6;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.threshold-number-indicator {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #8b5cf6;
+  font-family: var(--font-mono);
+  min-width: 40px;
+  text-align: right;
+}
+
+.threshold-explain-text {
+  font-size: 0.82rem;
+  color: var(--text-gray);
+  line-height: 1.45;
+}
+
+/* ============================================================
+   CARD 3 (RIGHT): HISTORICAL ANALYTICS
+   ============================================================ */
+.historical-analytics-exact-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-glow);
+  border-radius: 18px;
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+}
+
+.history-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.history-card-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-white);
+}
+
+.history-card-title span {
+  font-size: 0.88rem;
+  font-weight: normal;
+  color: var(--text-gray);
+}
+
+/* Exact Chart Legend */
+.exact-chart-legend {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-gray);
+}
+
+.legend-square {
+  display: inline-block;
+  width: 14px;
+  height: 8px;
+  border-radius: 2px;
+  margin-right: 6px;
+}
+.legend-square.temp { background: #3b82f6; }
+.legend-square.hum  { background: #10b981; }
+.legend-square.ldr  { background: #f59e0b; }
+
+/* Chart Canvas Area */
+.exact-chart-wrap {
+  width: 100%;
+  height: 200px;
+  position: relative;
+}
+
+/* Watermark Star in bottom-right */
+.chart-watermark-star {
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  opacity: 0.2;
+  font-size: 1.4rem;
+  pointer-events: none;
+}
+
+/* Sub-table: Sensor History */
+.mini-sensor-table-container {
+  width: 100%;
+  max-height: 150px;
+  overflow-y: auto;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.mini-sensor-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.82rem;
+}
+
+.mini-sensor-table th {
+  background: #090e18;
+  color: var(--text-gray);
+  padding: 10px 14px;
+  font-weight: 600;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.mini-sensor-table td {
+  padding: 9px 14px;
+  color: var(--text-white);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  font-family: var(--font-mono);
+}
+
+.pill-status-on {
+  display: inline-block;
+  padding: 2px 8px;
+  background: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.pill-status-off {
+  display: inline-block;
+  padding: 2px 8px;
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.pill-mode-auto {
+  display: inline-block;
+  padding: 2px 8px;
+  background: rgba(139, 92, 246, 0.2);
+  color: #c084fc;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.pill-mode-manual {
+  display: inline-block;
+  padding: 2px 8px;
+  background: rgba(59, 130, 246, 0.2);
+  color: #93c5fd;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+/* CSV Download button below table */
+.exact-csv-action-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.btn-exact-csv {
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-exact-csv:hover {
+  background: #334155;
+}
+
+/* Toast */
+.exact-toast-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.exact-toast {
+  background: #0f172a;
+  border: 1px solid var(--card-border);
+  color: #ffffff;
+  padding: 12px 18px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+  animation: toastIn 0.25s ease-out;
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive */
+@media (max-width: 960px) {
+  .bottom-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+  .exact-navbar {
+    padding: 10px 18px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 600px) {
+  .gauges-top-row {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .bulb-control-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 18px;
+  }
+  .btn-pair-row {
+    width: 100%;
+  }
+  .btn-turn-on-wire, .btn-turn-off-wire, .btn-mode-exact-manual, .btn-mode-exact-auto {
+    flex: 1;
+    text-align: center;
+  }
+}

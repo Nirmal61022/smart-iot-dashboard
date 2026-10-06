@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Home IoT Dashboard</title>
+  <meta name="description" content="Smart home IoT dashboard with account access and real-time telemetry controls.">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ==========================================================================
+       LOCALSTORAGE AUTHENTICATION VIEW (FIRST-TIME OR SIGN-OUT VIEW)
+       ========================================================================== -->
+  <div id="authOverlay" class="auth-overlay">
+    <div class="auth-modal-card">
+      <div class="auth-brand-center">
+        <h1 class="auth-brand-title">Smart Home</h1>
+        <p class="auth-brand-subtitle">IoT Dashboard</p>
+      </div>
+
+      <div class="auth-tabs-bar">
+        <button id="tabSignIn" class="auth-tab-btn active" type="button">Sign In</button>
+        <button id="tabSignUp" class="auth-tab-btn" type="button">Create Account</button>
+      </div>
+
+      <div class="auth-storage-notice">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c66a16" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 1px;">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+        <span><strong>Local account:</strong> Accounts are saved in this browser. Sign in is required each time you visit.</span>
+      </div>
+
+      <div id="authFeedback" class="auth-feedback-msg"></div>
+
+      <form id="authForm">
+        <!-- Sign Up only: Full Name -->
+        <div id="nameGroup" class="auth-form-group" style="display: none;">
+          <label for="authName">Full Name</label>
+          <div class="auth-input-wrapper">
+            <input type="text" id="authName" class="auth-input" placeholder="e.g. Nirmal Kumar" autocomplete="name">
+          </div>
+        </div>
+
+        <!-- Email -->
+        <div class="auth-form-group">
+          <label for="authEmail">Email Address</label>
+          <div class="auth-input-wrapper">
+            <input type="email" id="authEmail" class="auth-input" placeholder="name@example.com" required autocomplete="email">
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div class="auth-form-group">
+          <label for="authPassword">Password</label>
+          <div class="auth-input-wrapper">
+            <input type="password" id="authPassword" class="auth-input" placeholder="••••••••" required autocomplete="current-password" minlength="6">
+          </div>
+        </div>
+
+        <!-- Sign Up only: Confirm Password -->
+        <div id="confirmPassGroup" class="auth-form-group" style="display: none;">
+          <label for="authConfirmPass">Confirm Password</label>
+          <div class="auth-input-wrapper">
+            <input type="password" id="authConfirmPass" class="auth-input" placeholder="••••••••" autocomplete="new-password">
+          </div>
+        </div>
+
+        <button type="submit" id="authSubmitBtn" class="btn-auth-submit">Sign In to Dashboard</button>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- ==========================================================================
+       TOP NAVIGATION BAR
+       ========================================================================== -->
+  <header class="app-header">
+    <div class="brand-container">
+      <span class="brand-title">Smart Home</span>
+      <span class="brand-sub">IoT Dashboard</span>
+    </div>
+
+    <div class="header-actions">
+      <!-- Notification Bell -->
+      <button class="icon-btn" id="btnNotifications" title="System Notifications" type="button">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+        </svg>
+        <span class="badge-dot"></span>
+      </button>
+
+      <!-- Settings Gear -->
+      <button class="icon-btn" id="btnSettings" title="Platform Settings" type="button">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+      </button>
+
+      <!-- Account Profile Dropdown -->
+      <div class="account-dropdown-wrapper">
+        <button class="account-pill-btn" id="accountBtn" type="button">
+          <div class="user-avatar" id="headerUserAvatar">N</div>
+          <span>Account</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+
+        <!-- Dropdown Menu -->
+        <div class="account-menu-popover" id="accountMenu">
+          <div class="menu-user-info">
+            <div class="menu-user-name" id="menuUserName">Nirmal Kumar</div>
+            <div class="menu-user-email" id="menuUserEmail">nirmal.18@proto.tech</div>
+          </div>
+          <button class="menu-item-btn" id="menuBtnSwitch" type="button">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+            Switch Account
+          </button>
+          <button class="menu-item-btn" id="menuBtnClearData" type="button">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            Reset LocalStorage
+          </button>
+          <button class="menu-item-btn danger" id="menuBtnLogout" type="button">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            Sign Out
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+
+  <!-- ==========================================================================
+       MAIN DASHBOARD VIEWPORT
+       ========================================================================== -->
+  <main class="dashboard-viewport">
+
+    <!-- ----------------------------------------------------------------------
+         ROW 1: 4 METRIC CARDS
+         ---------------------------------------------------------------------- -->
+    <section class="top-metrics-row">
+
+      <!-- Card 1: Temperature -->
+      <div class="neo-card">
+        <div class="card-header-bar">
+          <span class="card-title-text">Temperature</span>
+          <div class="card-corner-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="7" y1="17" x2="17" y2="7"></line>
+              <polyline points="7 7 17 7 17 17"></polyline>
+            </svg>
+          </div>
+        </div>
+        <div class="metric-body">
+          <div class="metric-val-large" id="tempValueDisplay">22°C</div>
+          
+          <!-- Radial Arc Gauge -->
+          <div class="temp-gauge-wrapper">
+            <svg class="temp-gauge-svg" viewBox="0 0 80 80">
+              <defs>
+                <linearGradient id="tempGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#fbbf24"/>
+                  <stop offset="100%" stop-color="#f59e0b"/>
+                </linearGradient>
+              </defs>
+              <circle class="gauge-track" cx="40" cy="40" r="32"/>
+              <circle class="gauge-progress" id="gaugeArcProgress" cx="40" cy="40" r="32"/>
+            </svg>
+            <!-- Thermometer Icon inside gauge -->
+            <div class="gauge-center-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: Humidity -->
+      <div class="neo-card">
+        <div class="card-header-bar">
+          <span class="card-title-text">Humidity</span>
+          <div class="card-corner-icon" style="color: #38bdf8;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+            </svg>
+          </div>
+        </div>
+        <div class="metric-body">
+          <div class="metric-val-large" id="humidityValueDisplay">45%</div>
+          
+          <!-- Water Reservoir Tank -->
+          <div class="humidity-tank-box">
+            <div class="humidity-liquid" id="humidityTankFill">
+              <div class="humidity-wave"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 4: System Mode -->
+      <div class="neo-card">
+        <div class="card-header-bar">
+          <span class="card-title-text">System Mode</span>
+        </div>
+        <div class="metric-body">
+          <div class="system-mode-options" role="group" aria-label="System mode">
+            <button class="mode-pill-opt active" data-mode="MANUAL" type="button" aria-pressed="true">MANUAL</button>
+            <button class="mode-pill-opt" data-mode="AUTO" type="button" aria-pressed="false">AUTOMATIC</button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+
+    <!-- ----------------------------------------------------------------------
+         ROW 2: APPLIANCE CONTROL & HISTORICAL ANALYTICS
+         ---------------------------------------------------------------------- -->
+    <section class="middle-deck-row">
+
+      <!-- Appliance Control Card -->
+      <div class="neo-card">
+        <div class="card-header-bar">
+          <span class="card-title-text">Appliance Control</span>
+        </div>
+
+        <div class="appliance-layout">
+          <button class="power-state-toggle is-on" id="btnAppliancePower" type="button" aria-pressed="true">
+            <span class="power-indicator" aria-hidden="true"></span>
+            <span id="appliancePowerLabel">ON</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Historical Performance & Analytics Card -->
+      <div class="neo-card chart-card-container">
+        <div class="card-header-bar" style="margin-bottom: 6px;">
+          <span class="card-title-text">Historical Performance & Analytics</span>
+        </div>
+
+        <!-- Legend -->
+        <div class="chart-legend-row">
+          <div class="legend-item">
+            <span class="legend-line-dot" style="background: #f59e0b;"></span>
+            <span>Temperature</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-line-dot" style="background: #6366f1;"></span>
+            <span>Humidity</span>
+          </div>
+        </div>
+
+        <!-- Chart Canvas -->
+        <div class="chart-svg-container">
+          <canvas id="analyticsChart" class="analytics-chart-canvas"></canvas>
+        </div>
+      </div>
+
+    </section>
+
+
+    <!-- ----------------------------------------------------------------------
+         ROW 3: SENSOR LOG & HISTORY TABLE
+         ---------------------------------------------------------------------- -->
+    <section class="neo-card" style="padding-bottom: 24px;">
+      <div class="table-card-header">
+        <span class="card-title-text">Sensor Log & History</span>
+        <div class="table-actions-deck">
+          <button class="btn-table-action" id="btnAddLog" type="button">+ Add Log</button>
+          <button class="btn-table-action" id="btnExportCsv" type="button">Export CSV</button>
+        </div>
+      </div>
+
+      <div class="sensor-table-wrapper">
+        <table class="sensor-log-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Time</th>
+              <th>Temperature (°C)</th>
+              <th>Humidity (%)</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody id="sensorLogTableBody">
+            <!-- Rendered dynamically by app.js -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Bottom Right Sparkle Decor matching original image -->
+      <div class="table-sparkle-decor" aria-hidden="true">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="#64748b" style="filter: drop-shadow(0 0 8px rgba(148, 163, 184, 0.4));">
+          <path d="M12 0L14.2 9.8L24 12L14.2 14.2L12 24L9.8 14.2L0 12L9.8 9.8L12 0Z"/>
+        </svg>
+      </div>
+    </section>
+
+  </main>
+
+
+  <!-- Core Application Script -->
+  <script src="js/app.js"></script>
+</body>
+</html>
