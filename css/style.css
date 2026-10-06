@@ -570,7 +570,7 @@ body {
   position: relative;
 }
 
-.analytics-chart-canvas {
+.chart-svg-container svg {
   width: 100%;
   height: 100%;
   display: block;

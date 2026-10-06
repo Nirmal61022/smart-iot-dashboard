@@ -1,6 +1,6 @@
 /**
  * Smart Home IoT Dashboard - Single Page Application Core
- * Client-side state, LocalStorage authentication & real-time telemetry controls.
+ * Fast formality login (any credentials allowed) & guaranteed visible SVG analytics chart.
  */
 
 // LocalStorage Keys
@@ -11,8 +11,8 @@ const STORAGE_KEYS = {
   SETTINGS: 'aeterna_settings'
 };
 
-// Default User for quick sign in
-const DEFAULT_DEMO_USER = {
+// Default User Profile
+const DEFAULT_USER = {
   name: 'Nirmal Kumar',
   email: 'nirmal.18@proto.tech',
   password: 'password123',
@@ -20,7 +20,7 @@ const DEFAULT_DEMO_USER = {
   createdAt: '2023-11-20T08:00:00Z'
 };
 
-// Default Sensor History matching the table
+// Default Sensor History
 const DEFAULT_LOGS = [
   { date: '2023-11-20 09:15', time: '09:15', temp: 22.1, hum: 44.8, note: 'Routine Check' },
   { date: '2023-11-20 09:15', time: '09:48', temp: 22.1, hum: 44.8, note: 'Routine Check' },
@@ -34,7 +34,7 @@ const ANALYTICS_DATA = {
   humidity: [12, 10,  10,  13,  14,  13,  14,  16,  18,  19,  17,  15,  13]
 };
 
-// App State
+// Application State
 let state = {
   user: null,
   temperature: 22.0,
@@ -47,43 +47,27 @@ let state = {
 };
 
 /* ==========================================================================
-   INITIALIZATION & LOCALSTORAGE MANAGEMENT
+   INITIALIZATION & STORAGE
    ========================================================================== */
 document.addEventListener('DOMContentLoaded', () => {
   initStorage();
   initAuthUI();
   initDashboardControls();
-  initChart();
+  renderAnalyticsChart();
   renderLogsTable();
   startTelemetrySimulation();
 
-  // Check existing session
+  // Check session or prompt sign-in
   checkAuthSession();
 });
 
 function initStorage() {
-  // Ensure default users list exists
-  let users = getStoredUsers();
-  if (!users || users.length === 0) {
-    users = [DEFAULT_DEMO_USER];
-    localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
-  }
-
-  // Ensure default logs exist
   let logs = getStoredLogs();
   if (!logs || logs.length === 0) {
     localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify(DEFAULT_LOGS));
     state.logs = [...DEFAULT_LOGS];
   } else {
     state.logs = logs;
-  }
-}
-
-function getStoredUsers() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS)) || [];
-  } catch (e) {
-    return [];
   }
 }
 
@@ -96,7 +80,7 @@ function getStoredLogs() {
 }
 
 /* ==========================================================================
-   AUTHENTICATION LOGIC (LOCALSTORAGE BASED)
+   FORMALITY AUTHENTICATION (ACCEPTS ANY USERNAME & PASSWORD)
    ========================================================================== */
 function initAuthUI() {
   const tabSignIn = document.getElementById('tabSignIn');
@@ -106,16 +90,15 @@ function initAuthUI() {
   const nameGroup = document.getElementById('nameGroup');
   const confirmPassGroup = document.getElementById('confirmPassGroup');
 
-  let currentTab = 'signin'; // 'signin' or 'signup'
+  let currentTab = 'signin';
 
-  // Tab switching
   tabSignIn.addEventListener('click', () => {
     currentTab = 'signin';
     tabSignIn.classList.add('active');
     tabSignUp.classList.remove('active');
-    nameGroup.style.display = 'none';
-    confirmPassGroup.style.display = 'none';
-    authSubmitBtn.textContent = 'Sign In to Dashboard';
+    if (nameGroup) nameGroup.style.display = 'none';
+    if (confirmPassGroup) confirmPassGroup.style.display = 'none';
+    if (authSubmitBtn) authSubmitBtn.textContent = 'Sign In to Dashboard';
     hideFeedback();
   });
 
@@ -123,173 +106,165 @@ function initAuthUI() {
     currentTab = 'signup';
     tabSignUp.classList.add('active');
     tabSignIn.classList.remove('active');
-    nameGroup.style.display = 'block';
-    confirmPassGroup.style.display = 'block';
-    authSubmitBtn.textContent = 'Create Local Account';
+    if (nameGroup) nameGroup.style.display = 'block';
+    if (confirmPassGroup) confirmPassGroup.style.display = 'block';
+    if (authSubmitBtn) authSubmitBtn.textContent = 'Create Account & Enter';
     hideFeedback();
   });
 
-  // Form Submission
+  // Accepts ANY username and password unconditionally (formality sign in)
   authForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    const email = document.getElementById('authEmail').value.trim();
-    const password = document.getElementById('authPassword').value;
+    const rawEmail = document.getElementById('authEmail').value;
+    const rawPass = document.getElementById('authPassword').value;
+    const rawName = document.getElementById('authName') ? document.getElementById('authName').value : '';
 
-    if (currentTab === 'signin') {
-      authenticateUser(email, password);
-    } else {
-      const name = document.getElementById('authName').value.trim();
-      const confirmPass = document.getElementById('authConfirmPass').value;
+    const displayName = (rawName && rawName.trim()) 
+      ? rawName.trim() 
+      : ((rawEmail && rawEmail.trim()) ? rawEmail.trim().split('@')[0] : 'Nirmal Kumar');
 
-      if (!name) {
-        showFeedback('Please enter your full name', 'error');
-        return;
-      }
-      if (password.length < 6) {
-        showFeedback('Password must be at least 6 characters long', 'error');
-        return;
-      }
-      if (password !== confirmPass) {
-        showFeedback('Passwords do not match', 'error');
-        return;
-      }
+    const displayEmail = (rawEmail && rawEmail.trim()) 
+      ? rawEmail.trim() 
+      : 'nirmal.18@proto.tech';
 
-      registerUser(name, email, password);
-    }
+    const user = {
+      name: displayName.charAt(0).toUpperCase() + displayName.slice(1),
+      email: displayEmail,
+      password: rawPass || 'password',
+      avatar: (displayName.charAt(0) || 'U').toUpperCase(),
+      createdAt: new Date().toISOString()
+    };
+
+    loginSuccess(user);
   });
 
   // Account dropdown toggle
   const accountBtn = document.getElementById('accountBtn');
   const accountMenu = document.getElementById('accountMenu');
-  accountBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    accountMenu.classList.toggle('active');
-  });
+  if (accountBtn && accountMenu) {
+    accountBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      accountMenu.classList.toggle('active');
+    });
 
-  document.addEventListener('click', (e) => {
-    if (!accountMenu.contains(e.target) && !accountBtn.contains(e.target)) {
-      accountMenu.classList.remove('active');
-    }
-  });
+    document.addEventListener('click', (e) => {
+      if (!accountMenu.contains(e.target) && !accountBtn.contains(e.target)) {
+        accountMenu.classList.remove('active');
+      }
+    });
+  }
 
   // Menu items: Logout
-  document.getElementById('menuBtnLogout').addEventListener('click', () => {
-    logoutUser();
-  });
+  const btnLogout = document.getElementById('menuBtnLogout');
+  if (btnLogout) {
+    btnLogout.addEventListener('click', () => {
+      logoutUser();
+    });
+  }
 
   // Menu items: Switch account
-  document.getElementById('menuBtnSwitch').addEventListener('click', () => {
-    logoutUser();
-  });
+  const btnSwitch = document.getElementById('menuBtnSwitch');
+  if (btnSwitch) {
+    btnSwitch.addEventListener('click', () => {
+      logoutUser();
+    });
+  }
 
   // Menu items: Clear data
-  document.getElementById('menuBtnClearData').addEventListener('click', () => {
-    if (confirm('Reset all localStorage data (sensor logs & saved credentials) to default?')) {
-      localStorage.clear();
-      initStorage();
-      alert('Local storage reset. Reloading application...');
-      window.location.reload();
-    }
-  });
+  const btnClearData = document.getElementById('menuBtnClearData');
+  if (btnClearData) {
+    btnClearData.addEventListener('click', () => {
+      if (confirm('Reset all localStorage data (sensor logs & saved credentials) to default?')) {
+        localStorage.clear();
+        initStorage();
+        window.location.reload();
+      }
+    });
+  }
 }
 
-function showFeedback(msg, type = 'error') {
+function showFeedback(msg, type = 'success') {
   const el = document.getElementById('authFeedback');
-  el.textContent = msg;
-  el.className = `auth-feedback-msg ${type}`;
+  if (el) {
+    el.textContent = msg;
+    el.className = `auth-feedback-msg ${type}`;
+    el.style.display = 'block';
+  }
 }
 
 function hideFeedback() {
   const el = document.getElementById('authFeedback');
-  el.className = 'auth-feedback-msg';
-  el.textContent = '';
-}
-
-function authenticateUser(email, password) {
-  const users = getStoredUsers();
-  const matched = users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
-
-  if (matched) {
-    showFeedback('Sign in successful! Entering dashboard...', 'success');
-    loginSuccess(matched);
-  } else {
-    showFeedback('Invalid credentials. Check email & password.', 'error');
+  if (el) {
+    el.className = 'auth-feedback-msg';
+    el.textContent = '';
+    el.style.display = 'none';
   }
-}
-
-function registerUser(name, email, password) {
-  const users = getStoredUsers();
-  const existing = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-
-  if (existing) {
-    showFeedback('An account with this email already exists in localStorage.', 'error');
-    return;
-  }
-
-  const newUser = {
-    name,
-    email,
-    password,
-    avatar: name.charAt(0).toUpperCase() || 'U',
-    createdAt: new Date().toISOString()
-  };
-
-  users.push(newUser);
-  localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
-  showFeedback('Account created & stored in browser! Loading...', 'success');
-  loginSuccess(newUser);
 }
 
 function loginSuccess(user) {
   state.user = user;
   localStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(user));
+  showFeedback('Access granted. Entering dashboard...', 'success');
 
   setTimeout(() => {
     const authOverlay = document.getElementById('authOverlay');
-    authOverlay.style.opacity = '0';
-    authOverlay.style.transition = 'opacity 0.4s ease';
-    setTimeout(() => {
-      authOverlay.style.display = 'none';
-      authOverlay.style.opacity = '1';
-    }, 400);
-
+    if (authOverlay) {
+      authOverlay.style.opacity = '0';
+      authOverlay.style.transition = 'opacity 0.3s ease';
+      setTimeout(() => {
+        authOverlay.style.display = 'none';
+        authOverlay.style.opacity = '1';
+        // Ensure chart is fully rendered once dashboard is visible
+        renderAnalyticsChart();
+      }, 300);
+    }
     updateUserUI(user);
-  }, 400);
+  }, 250);
 }
 
 function checkAuthSession() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.SESSION));
-    if (saved && saved.email) {
+    if (saved && (saved.email || saved.name)) {
       state.user = saved;
-      document.getElementById('authOverlay').style.display = 'none';
+      const overlay = document.getElementById('authOverlay');
+      if (overlay) overlay.style.display = 'none';
       updateUserUI(saved);
+      renderAnalyticsChart();
       return;
     }
   } catch (e) {}
 
-  // If no session, show auth overlay
-  document.getElementById('authOverlay').style.display = 'flex';
+  // If no previous session, show overlay
+  const overlay = document.getElementById('authOverlay');
+  if (overlay) overlay.style.display = 'flex';
 }
 
 function updateUserUI(user) {
-  document.getElementById('headerUserAvatar').textContent = user.avatar || user.name.charAt(0).toUpperCase();
-  document.getElementById('menuUserName').textContent = user.name;
-  document.getElementById('menuUserEmail').textContent = user.email;
+  const avatar = document.getElementById('headerUserAvatar');
+  const name = document.getElementById('menuUserName');
+  const email = document.getElementById('menuUserEmail');
+
+  if (avatar) avatar.textContent = user.avatar || user.name.charAt(0).toUpperCase();
+  if (name) name.textContent = user.name;
+  if (email) email.textContent = user.email;
 }
 
 function logoutUser() {
   localStorage.removeItem(STORAGE_KEYS.SESSION);
   state.user = null;
-  document.getElementById('accountMenu').classList.remove('active');
-  const authOverlay = document.getElementById('authOverlay');
-  authOverlay.style.display = 'flex';
-  authOverlay.style.opacity = '1';
+  const menu = document.getElementById('accountMenu');
+  if (menu) menu.classList.remove('active');
+  const overlay = document.getElementById('authOverlay');
+  if (overlay) {
+    overlay.style.display = 'flex';
+    overlay.style.opacity = '1';
+  }
   hideFeedback();
 }
 
 /* ==========================================================================
-   DASHBOARD METRICS & CONTROLS INTERACTION
+   DASHBOARD CONTROLS (SYSTEM MODE & APPLIANCE POWER)
    ========================================================================== */
 function initDashboardControls() {
   // System Mode Option Pills (MANUAL / AUTOMATIC)
@@ -306,7 +281,7 @@ function initDashboardControls() {
     });
   });
 
-  // Appliance Control Power Toggle
+  // Appliance Power Toggle Button
   const btnAppliancePower = document.getElementById('btnAppliancePower');
   const appliancePowerLabel = document.getElementById('appliancePowerLabel');
   if (btnAppliancePower) {
@@ -320,7 +295,7 @@ function initDashboardControls() {
     });
   }
 
-  // Top header quick notification bell
+  // Notifications Bell
   const btnNotifications = document.getElementById('btnNotifications');
   if (btnNotifications) {
     btnNotifications.addEventListener('click', () => {
@@ -328,7 +303,7 @@ function initDashboardControls() {
     });
   }
 
-  // Settings button
+  // Settings Gear
   const btnSettings = document.getElementById('btnSettings');
   if (btnSettings) {
     btnSettings.addEventListener('click', () => {
@@ -341,7 +316,7 @@ function initDashboardControls() {
     });
   }
 
-  // Table buttons
+  // Table buttons: Add Log
   const btnAddLog = document.getElementById('btnAddLog');
   if (btnAddLog) {
     btnAddLog.addEventListener('click', () => {
@@ -352,6 +327,7 @@ function initDashboardControls() {
     });
   }
 
+  // Table buttons: Export CSV
   const btnExportCsv = document.getElementById('btnExportCsv');
   if (btnExportCsv) {
     btnExportCsv.addEventListener('click', () => {
@@ -361,10 +337,9 @@ function initDashboardControls() {
 }
 
 /* ==========================================================================
-   METRICS RENDERING (GAUGE, RESERVOIR)
+   METRICS RENDERING (GAUGE & WATER TANK)
    ========================================================================== */
 function renderMetricsUI() {
-  // 1. Temperature Gauge
   const tempDisplay = document.getElementById('tempValueDisplay');
   if (tempDisplay) {
     tempDisplay.textContent = `${state.temperature.toFixed(0)}°C`;
@@ -378,7 +353,6 @@ function renderMetricsUI() {
     gaugeArc.style.strokeDashoffset = offset;
   }
 
-  // 2. Humidity Reservoir
   const humDisplay = document.getElementById('humidityValueDisplay');
   if (humDisplay) {
     humDisplay.textContent = `${Math.round(state.humidity)}%`;
@@ -400,14 +374,12 @@ function startTelemetrySimulation() {
 function updateLiveTelemetry() {
   if (!state.simActive) return;
 
-  // Realistic micro variations
   const deltaTemp = (Math.random() - 0.5) * 0.4;
   const deltaHum = (Math.random() - 0.5) * 1.0;
 
   state.temperature = Math.round((state.temperature + deltaTemp) * 10) / 10;
   state.humidity = Math.round(state.humidity + deltaHum);
 
-  // Keep in plausible bounds
   if (state.temperature < 21) state.temperature = 21.4;
   if (state.temperature > 23) state.temperature = 22.2;
   if (state.humidity < 42) state.humidity = 43;
@@ -417,119 +389,108 @@ function updateLiveTelemetry() {
 }
 
 /* ==========================================================================
-   HISTORICAL PERFORMANCE & ANALYTICS CANVAS CHART
+   GUARANTEED VISIBLE SVG ANALYTICS GRAPH
    ========================================================================== */
-function initChart() {
-  const canvas = document.getElementById('analyticsChart');
-  if (!canvas) return;
+function renderAnalyticsChart() {
+  const container = document.getElementById('chartContainer');
+  if (!container) return;
 
-  const ctx = canvas.getContext('2d');
+  const w = 720;
+  const h = 180;
+  const padLeft = 32;
+  const padRight = 20;
+  const padTop = 16;
+  const padBottom = 26;
+  const chartW = w - padLeft - padRight;
+  const chartH = h - padTop - padBottom;
+  const yMax = 25;
+  const ySteps = [0, 5, 10, 15, 20, 25];
 
-  function resizeAndDraw() {
-    const rect = canvas.parentElement.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
-    ctx.resetTransform();
-    ctx.scale(dpr, dpr);
-    drawChart(rect.width, rect.height, 1);
-  }
+  const pointsCount = ANALYTICS_DATA.labels.length;
+  const stepX = chartW / (pointsCount - 1);
 
-  function drawChart(w, h, progress = 1) {
-    ctx.clearRect(0, 0, w, h);
+  // Build grid lines and labels
+  let gridLinesSvg = '';
+  ySteps.forEach(val => {
+    const y = padTop + chartH - (val / yMax) * chartH;
+    gridLinesSvg += `
+      <line x1="${padLeft}" y1="${y}" x2="${padLeft + chartW}" y2="${y}" stroke="rgba(249, 115, 22, 0.16)" stroke-width="1" />
+      <text x="${padLeft - 8}" y="${y + 4}" fill="#78716c" font-size="11" font-family="'Plus Jakarta Sans', sans-serif" font-weight="600" text-anchor="end">${val}</text>
+    `;
+  });
 
-    const padLeft = 28;
-    const padRight = 16;
-    const padTop = 14;
-    const padBottom = 26;
+  // Build X-axis time marks
+  let xLabelsSvg = '';
+  ANALYTICS_DATA.labels.forEach((lbl, i) => {
+    const x = padLeft + i * stepX;
+    xLabelsSvg += `
+      <text x="${x}" y="${padTop + chartH + 18}" fill="#78716c" font-size="11" font-family="'Plus Jakarta Sans', sans-serif" font-weight="600" text-anchor="middle">${lbl}</text>
+    `;
+  });
 
-    const chartW = w - padLeft - padRight;
-    const chartH = h - padTop - padBottom;
+  // Helper to generate smooth curve path and point circles
+  function generateCurveAndDots(data, strokeColor, fillColor, seriesName, unit) {
+    let d = '';
+    let dots = '';
 
-    const yMax = 25;
-    const ySteps = [0, 5, 10, 12, 15, 20, 25];
-
-    // Grid Lines & Y-axis labels
-    ctx.strokeStyle = 'rgba(249, 115, 22, 0.16)';
-    ctx.fillStyle = '#78716c';
-    ctx.font = '600 11px "Plus Jakarta Sans", sans-serif';
-    ctx.textAlign = 'right';
-    ctx.textBaseline = 'middle';
-
-    ySteps.forEach(val => {
-      const y = padTop + chartH - (val / yMax) * chartH;
-      ctx.beginPath();
-      ctx.moveTo(padLeft, y);
-      ctx.lineTo(padLeft + chartW, y);
-      ctx.stroke();
-      ctx.fillText(val, padLeft - 8, y);
-    });
-
-    // X-axis labels
-    const pointsCount = ANALYTICS_DATA.labels.length;
-    const stepX = chartW / (pointsCount - 1);
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'top';
-
-    ANALYTICS_DATA.labels.forEach((lbl, i) => {
+    data.forEach((val, i) => {
       const x = padLeft + i * stepX;
-      ctx.fillText(lbl, x, padTop + chartH + 8);
+      const y = padTop + chartH - (val / yMax) * chartH;
+
+      if (i === 0) {
+        d += `M ${x.toFixed(1)} ${y.toFixed(1)}`;
+      } else {
+        const prevX = padLeft + (i - 1) * stepX;
+        const prevVal = data[i - 1];
+        const prevY = padTop + chartH - (prevVal / yMax) * chartH;
+        const cpX1 = prevX + stepX * 0.45;
+        const cpX2 = x - stepX * 0.45;
+        d += ` C ${cpX1.toFixed(1)} ${prevY.toFixed(1)}, ${cpX2.toFixed(1)} ${y.toFixed(1)}, ${x.toFixed(1)} ${y.toFixed(1)}`;
+      }
+
+      dots += `
+        <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4" fill="${fillColor}" stroke="#ffffff" stroke-width="1.8" style="cursor: pointer;">
+          <title>${seriesName}: ${val}${unit} at ${ANALYTICS_DATA.labels[i]}</title>
+        </circle>
+      `;
     });
 
-    // Helper to draw series curve
-    function drawSeries(data, strokeColor, dotColor) {
-      ctx.save();
-      ctx.beginPath();
-
-      data.forEach((val, i) => {
-        const x = padLeft + i * stepX;
-        const targetY = padTop + chartH - (val / yMax) * chartH;
-        const y = padTop + chartH - ((val / yMax) * chartH * progress);
-
-        if (i === 0) {
-          ctx.moveTo(x, y);
-        } else {
-          const prevX = padLeft + (i - 1) * stepX;
-          const prevVal = data[i - 1];
-          const prevY = padTop + chartH - ((prevVal / yMax) * chartH * progress);
-          const cpX1 = prevX + stepX * 0.45;
-          const cpX2 = x - stepX * 0.45;
-          ctx.bezierCurveTo(cpX1, prevY, cpX2, y, x, y);
-        }
-      });
-
-      ctx.strokeStyle = strokeColor;
-      ctx.lineWidth = 2.4;
-      ctx.shadowColor = strokeColor;
-      ctx.shadowBlur = 4;
-      ctx.stroke();
-
-      // Draw point markers
-      data.forEach((val, i) => {
-        const x = padLeft + i * stepX;
-        const y = padTop + chartH - ((val / yMax) * chartH * progress);
-        ctx.beginPath();
-        ctx.arc(x, y, 3.5, 0, Math.PI * 2);
-        ctx.fillStyle = dotColor;
-        ctx.fill();
-        ctx.lineWidth = 1.5;
-        ctx.strokeStyle = '#ffffff';
-        ctx.stroke();
-      });
-
-      ctx.restore();
-    }
-
-    // 1. Humidity (Purple/Indigo)
-    drawSeries(ANALYTICS_DATA.humidity, '#6366f1', '#818cf8');
-
-    // 2. Temperature (Warm Amber / Orange)
-    drawSeries(ANALYTICS_DATA.temp, '#f59e0b', '#fbbf24');
+    return { pathD: d, dotsSvg: dots };
   }
 
-  window.addEventListener('resize', resizeAndDraw);
-  setTimeout(resizeAndDraw, 100);
+  const tempCurve = generateCurveAndDots(ANALYTICS_DATA.temp, '#ea580c', '#fbbf24', 'Temperature', '°C');
+  const humCurve = generateCurveAndDots(ANALYTICS_DATA.humidity, '#6366f1', '#818cf8', 'Humidity', '%');
+
+  const svgContent = `
+    <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="width: 100%; height: 100%; display: block;" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="glowOrange" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="rgba(234, 88, 12, 0.45)" />
+        </filter>
+        <filter id="glowBlue" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="rgba(99, 102, 241, 0.45)" />
+        </filter>
+      </defs>
+
+      <!-- Grid & Axes -->
+      ${gridLinesSvg}
+      ${xLabelsSvg}
+
+      <!-- Humidity Series (Indigo/Blue Curve) -->
+      <path d="${humCurve.pathD}" fill="none" stroke="#6366f1" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" filter="url(#glowBlue)" />
+      ${humCurve.dotsSvg}
+
+      <!-- Temperature Series (Orange Curve) -->
+      <path d="${tempCurve.pathD}" fill="none" stroke="#ea580c" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" filter="url(#glowOrange)" />
+      ${tempCurve.dotsSvg}
+    </svg>
+  `;
+
+  container.innerHTML = svgContent;
 }
+
+// Window resize listener to keep chart razor sharp
+window.addEventListener('resize', renderAnalyticsChart);
 
 /* ==========================================================================
    SENSOR LOG TABLE & CSV EXPORT

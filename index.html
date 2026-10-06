@@ -11,7 +11,7 @@
 <body>
 
   <!-- ==========================================================================
-       LOCALSTORAGE AUTHENTICATION VIEW (FIRST-TIME OR SIGN-OUT VIEW)
+       LOCALSTORAGE AUTHENTICATION VIEW (FORMALITY / ANY USERNAME & PASS WORKS)
        ========================================================================== -->
   <div id="authOverlay" class="auth-overlay">
     <div class="auth-modal-card">
@@ -30,7 +30,7 @@
           <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
           <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
         </svg>
-        <span><strong>Local account:</strong> Accounts are saved in this browser. Sign in is required each time you visit.</span>
+        <span><strong>Quick Access:</strong> Sign in with any username and password to access the live dashboard.</span>
       </div>
 
       <div id="authFeedback" class="auth-feedback-msg"></div>
@@ -44,11 +44,11 @@
           </div>
         </div>
 
-        <!-- Email -->
+        <!-- Email or Username -->
         <div class="auth-form-group">
-          <label for="authEmail">Email Address</label>
+          <label for="authEmail">Username or Email</label>
           <div class="auth-input-wrapper">
-            <input type="email" id="authEmail" class="auth-input" placeholder="name@example.com" required autocomplete="email">
+            <input type="text" id="authEmail" class="auth-input" placeholder="Enter any username or email" value="nirmal.18@proto.tech" autocomplete="username">
           </div>
         </div>
 
@@ -56,7 +56,7 @@
         <div class="auth-form-group">
           <label for="authPassword">Password</label>
           <div class="auth-input-wrapper">
-            <input type="password" id="authPassword" class="auth-input" placeholder="••••••••" required autocomplete="current-password" minlength="6">
+            <input type="password" id="authPassword" class="auth-input" placeholder="Enter any password" value="password123" autocomplete="current-password">
           </div>
         </div>
 
@@ -64,7 +64,7 @@
         <div id="confirmPassGroup" class="auth-form-group" style="display: none;">
           <label for="authConfirmPass">Confirm Password</label>
           <div class="auth-input-wrapper">
-            <input type="password" id="authConfirmPass" class="auth-input" placeholder="••••••••" autocomplete="new-password">
+            <input type="password" id="authConfirmPass" class="auth-input" placeholder="Confirm password" autocomplete="new-password">
           </div>
         </div>
 
@@ -256,9 +256,9 @@
           </div>
         </div>
 
-        <!-- Chart Canvas -->
-        <div class="chart-svg-container">
-          <canvas id="analyticsChart" class="analytics-chart-canvas"></canvas>
+        <!-- Chart Container with Guaranteed Visible Responsive SVG Graph -->
+        <div class="chart-svg-container" id="chartContainer">
+          <!-- Populated by renderAnalyticsChart() -->
         </div>
       </div>
 
@@ -294,9 +294,9 @@
         </table>
       </div>
 
-      <!-- Bottom Right Sparkle Decor matching original image -->
+      <!-- Bottom Right Sparkle Decor -->
       <div class="table-sparkle-decor" aria-hidden="true">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="#64748b" style="filter: drop-shadow(0 0 8px rgba(148, 163, 184, 0.4));">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="#ea580c" style="filter: drop-shadow(0 0 8px rgba(234, 88, 12, 0.4));">
           <path d="M12 0L14.2 9.8L24 12L14.2 14.2L12 24L9.8 14.2L0 12L9.8 9.8L12 0Z"/>
         </svg>
       </div>
