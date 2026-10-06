@@ -605,9 +605,9 @@ function initChart() {
     const ySteps = [0, 5, 10, 12, 15, 20, 25];
 
     // Grid Lines & Y-axis labels
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-    ctx.fillStyle = '#64748b';
-    ctx.font = '10px "Plus Jakarta Sans", sans-serif';
+    ctx.strokeStyle = 'rgba(249, 115, 22, 0.16)';
+    ctx.fillStyle = '#78716c';
+    ctx.font = '600 11px "Plus Jakarta Sans", sans-serif';
     ctx.textAlign = 'right';
     ctx.textBaseline = 'middle';
 
@@ -617,7 +617,7 @@ function initChart() {
       ctx.moveTo(padLeft, y);
       ctx.lineTo(padLeft + chartW, y);
       ctx.stroke();
-      ctx.fillText(val, padLeft - 6, y);
+      ctx.fillText(val, padLeft - 8, y);
     });
 
     // X-axis labels
@@ -655,9 +655,9 @@ function initChart() {
       });
 
       ctx.strokeStyle = strokeColor;
-      ctx.lineWidth = 2.2;
+      ctx.lineWidth = 2.4;
       ctx.shadowColor = strokeColor;
-      ctx.shadowBlur = 6;
+      ctx.shadowBlur = 4;
       ctx.stroke();
 
       // Draw point markers
@@ -665,25 +665,25 @@ function initChart() {
         const x = padLeft + i * stepX;
         const y = padTop + chartH - ((val / yMax) * chartH * progress);
         ctx.beginPath();
-        ctx.arc(x, y, 3, 0, Math.PI * 2);
+        ctx.arc(x, y, 3.5, 0, Math.PI * 2);
         ctx.fillStyle = dotColor;
         ctx.fill();
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = '#181e2b';
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = '#ffffff';
         ctx.stroke();
       });
 
       ctx.restore();
     }
 
-    // 1. Humidity (Purple-Indigo)
-    drawSeries(ANALYTICS_DATA.humidity, '#6366f1', '#818cf8');
+    // 1. Humidity (Crisp Royal Blue)
+    drawSeries(ANALYTICS_DATA.humidity, '#2563eb', '#60a5fa');
 
-    // 2. Temperature (Warm Amber / Orange)
-    drawSeries(ANALYTICS_DATA.temp, '#f59e0b', '#fbbf24');
+    // 2. Temperature (Vibrant Warm Orange)
+    drawSeries(ANALYTICS_DATA.temp, '#ea580c', '#fb923c');
 
-    // 3. pH (Teal / Cyan)
-    drawSeries(ANALYTICS_DATA.ph, '#14b8a6', '#2dd4bf');
+    // 3. pH (Teal)
+    drawSeries(ANALYTICS_DATA.ph, '#0d9488', '#2dd4bf');
   }
 
   window.addEventListener('resize', resizeAndDraw);

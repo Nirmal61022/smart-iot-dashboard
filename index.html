@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AETERNA SmartHome IoT</title>
-  <meta name="description" content="AETERNA SmartHome IoT Single Page Application with LocalStorage Authentication and Real-Time Telemetry Controls.">
+  <meta name="description" content="AETERNA SmartHome IoT Single Page Application with LocalStorage Authentication, Pale Orange Theme and Stacked Control Deck.">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="stylesheet" href="css/style.css">
 </head>
@@ -26,7 +26,7 @@
       </div>
 
       <div class="auth-storage-notice">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 1px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 1px;">
           <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
           <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
         </svg>
@@ -140,229 +140,225 @@
 
 
   <!-- ==========================================================================
-       MAIN DASHBOARD VIEWPORT
+       MAIN DASHBOARD: ALL BOXES ONE BY ONE BELOW (STACKED DECK)
        ========================================================================== -->
   <main class="dashboard-viewport">
 
     <!-- ----------------------------------------------------------------------
-         ROW 1: 4 METRIC CARDS
+         BOX 1: TEMPERATURE
          ---------------------------------------------------------------------- -->
-    <section class="top-metrics-row">
-
-      <!-- Card 1: Temperature -->
-      <div class="neo-card">
-        <div class="card-header-bar">
-          <span class="card-title-text">Temperature</span>
-          <div class="card-corner-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="7" y1="17" x2="17" y2="7"></line>
-              <polyline points="7 7 17 7 17 17"></polyline>
-            </svg>
-          </div>
-        </div>
-        <div class="metric-body">
-          <div class="metric-val-large" id="tempValueDisplay">22°C</div>
-          
-          <!-- Radial Arc Gauge -->
-          <div class="temp-gauge-wrapper">
-            <svg class="temp-gauge-svg" viewBox="0 0 80 80">
-              <defs>
-                <linearGradient id="tempGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#fbbf24"/>
-                  <stop offset="100%" stop-color="#f59e0b"/>
-                </linearGradient>
-              </defs>
-              <circle class="gauge-track" cx="40" cy="40" r="32"/>
-              <circle class="gauge-progress" id="gaugeArcProgress" cx="40" cy="40" r="32"/>
-            </svg>
-            <!-- Thermometer Icon inside gauge -->
-            <div class="gauge-center-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path>
-              </svg>
-            </div>
-          </div>
+    <div class="neo-card">
+      <div class="card-header-bar">
+        <span class="card-title-text">Temperature</span>
+        <div class="card-corner-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="7" y1="17" x2="17" y2="7"></line>
+            <polyline points="7 7 17 7 17 17"></polyline>
+          </svg>
         </div>
       </div>
-
-      <!-- Card 2: Humidity -->
-      <div class="neo-card">
-        <div class="card-header-bar">
-          <span class="card-title-text">Humidity</span>
-          <div class="card-corner-icon" style="color: #38bdf8;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
-            </svg>
-          </div>
-        </div>
-        <div class="metric-body">
-          <div class="metric-val-large" id="humidityValueDisplay">45%</div>
-          
-          <!-- Water Reservoir Tank -->
-          <div class="humidity-tank-box">
-            <div class="humidity-liquid" id="humidityTankFill">
-              <div class="humidity-wave"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Card 3: pH -->
-      <div class="neo-card">
-        <div class="card-header-bar">
-          <span class="card-title-text">pH</span>
-          <div class="card-corner-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
-            </svg>
-          </div>
-        </div>
-        <div class="metric-body">
-          <div class="metric-val-large" id="phValueDisplay">7.2</div>
-          
-          <!-- Rainbow Spectrum Bar -->
-          <div class="ph-spectrum-bar">
-            <div class="ph-indicator-pin" id="phIndicatorPin"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Card 4: System Mode -->
-      <div class="neo-card">
-        <div class="card-header-bar">
-          <span class="card-title-text">System Mode</span>
-          <!-- Mode Toggle Switch -->
-          <label class="switch-pill" title="Toggle Auto / Manual">
-            <input type="checkbox" id="toggleSystemMode" checked>
-            <span class="slider-track teal"></span>
-          </label>
-        </div>
-        <div class="metric-body">
-          <div class="system-mode-text" id="systemModeLabel">MANUAL</div>
-          
-          <!-- ECG Pulse Waveform -->
-          <div class="ecg-pulse-graphic">
-            <svg width="42" height="28" viewBox="0 0 48 32" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="2,16 12,16 18,6 24,26 30,12 36,18 46,18"></polyline>
+      <div class="metric-body">
+        <div class="metric-val-large" id="tempValueDisplay">22°C</div>
+        
+        <!-- Radial Arc Gauge -->
+        <div class="temp-gauge-wrapper">
+          <svg class="temp-gauge-svg" viewBox="0 0 80 80">
+            <defs>
+              <linearGradient id="tempGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#fb923c"/>
+                <stop offset="100%" stop-color="#ea580c"/>
+              </linearGradient>
+            </defs>
+            <circle class="gauge-track" cx="40" cy="40" r="32"/>
+            <circle class="gauge-progress" id="gaugeArcProgress" cx="40" cy="40" r="32"/>
+          </svg>
+          <!-- Thermometer Icon inside gauge -->
+          <div class="gauge-center-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path>
             </svg>
           </div>
         </div>
       </div>
-
-    </section>
-
+    </div>
 
     <!-- ----------------------------------------------------------------------
-         ROW 2: APPLIANCE CONTROL & HISTORICAL ANALYTICS
+         BOX 2: HUMIDITY
          ---------------------------------------------------------------------- -->
-    <section class="middle-deck-row">
-
-      <!-- Appliance Control Card -->
-      <div class="neo-card">
-        <div class="card-header-bar">
-          <span class="card-title-text">Appliance Control</span>
+    <div class="neo-card">
+      <div class="card-header-bar">
+        <span class="card-title-text">Humidity</span>
+        <div class="card-corner-icon" style="color: #0284c7;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+          </svg>
         </div>
-
-        <div class="appliance-layout">
-          <!-- Big Tactile Buttons (Lightbulb & Fan) -->
-          <div class="tactile-buttons-group">
-            <!-- Lightbulb Button -->
-            <button class="tactile-btn light-active" id="btnLightTactile" title="Toggle Lighting Appliance" type="button">
-              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="9" y1="18" x2="15" y2="18"></line>
-                <line x1="10" y1="22" x2="14" y2="22"></line>
-                <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"></path>
-                <circle cx="12" cy="8" r="1.5" fill="currentColor"></circle>
-              </svg>
-            </button>
-
-            <!-- Fan Propeller Button -->
-            <button class="tactile-btn fan-active" id="btnFanTactile" title="Toggle Ventilation Fan" type="button">
-              <span class="fan-spinner speed-med" id="fanSpinner">
-                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M10.827 16.379a6.082 6.082 0 0 1-8.618-7.002l5.412 1.45a6.082 6.082 0 0 1 7.002-8.618l-1.45 5.412a6.082 6.082 0 0 1 8.618 7.002l-5.412-1.45a6.082 6.082 0 0 1-7.002 8.618l1.45-5.412Z"></path>
-                  <circle cx="12" cy="12" r="2.5" fill="currentColor"></circle>
-                </svg>
-              </span>
-            </button>
-          </div>
-
-          <!-- Controls Stack -->
-          <div class="appliance-controls-stack">
-            <!-- Line 1: Ltg: ON/OFF and toggles -->
-            <div class="control-line-row">
-              <span class="control-label-text">Ltg:ON/OFF</span>
-              <!-- Amber Toggle for Light -->
-              <label class="switch-pill">
-                <input type="checkbox" id="toggleLightSwitch" checked>
-                <span class="slider-track amber"></span>
-              </label>
-
-              <!-- Secondary Teal Toggle -->
-              <label class="switch-pill">
-                <input type="checkbox" id="toggleAuxTeal" checked>
-                <span class="slider-track teal"></span>
-              </label>
-            </div>
-
-            <!-- Line 2: Fan speed segmented pills -->
-            <div class="control-line-row">
-              <span class="control-label-text">Fan:LOW</span>
-              <div class="segmented-fan-bar">
-                <button class="fan-pill-opt" data-speed="MED" type="button">MED</button>
-                <button class="fan-pill-opt" data-speed="HIGH" type="button">HIGH</button>
-                <button class="fan-pill-opt" data-speed="AUTO" type="button">AUTO</button>
-              </div>
-            </div>
-
-            <!-- Line 3: Blue toggle & Scene Select button -->
-            <div class="control-line-row">
-              <label class="switch-pill">
-                <input type="checkbox" id="toggleAuxBlue">
-                <span class="slider-track blue"></span>
-              </label>
-
-              <button class="btn-scene-select" id="btnSceneSelect" type="button">Scene Select</button>
-            </div>
+      </div>
+      <div class="metric-body">
+        <div class="metric-val-large" id="humidityValueDisplay">45%</div>
+        
+        <!-- Water Reservoir Tank -->
+        <div class="humidity-tank-box">
+          <div class="humidity-liquid" id="humidityTankFill">
+            <div class="humidity-wave"></div>
           </div>
         </div>
       </div>
-
-      <!-- Historical Performance & Analytics Card -->
-      <div class="neo-card chart-card-container">
-        <div class="card-header-bar" style="margin-bottom: 6px;">
-          <span class="card-title-text">Historical Performance & Analytics</span>
-        </div>
-
-        <!-- Legend -->
-        <div class="chart-legend-row">
-          <div class="legend-item">
-            <span class="legend-line-dot" style="background: #f59e0b;"></span>
-            <span>Temperature</span>
-          </div>
-          <div class="legend-item">
-            <span class="legend-line-dot" style="background: #6366f1;"></span>
-            <span>Humidity</span>
-          </div>
-          <div class="legend-item">
-            <span class="legend-line-dot" style="background: #14b8a6;"></span>
-            <span>pH</span>
-          </div>
-        </div>
-
-        <!-- Chart Canvas -->
-        <div class="chart-svg-container">
-          <canvas id="analyticsChart" class="analytics-chart-canvas"></canvas>
-        </div>
-      </div>
-
-    </section>
-
+    </div>
 
     <!-- ----------------------------------------------------------------------
-         ROW 3: SENSOR LOG & HISTORY TABLE
+         BOX 3: pH
          ---------------------------------------------------------------------- -->
-    <section class="neo-card" style="padding-bottom: 24px;">
+    <div class="neo-card">
+      <div class="card-header-bar">
+        <span class="card-title-text">pH</span>
+        <div class="card-corner-icon" style="color: #ea580c;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+          </svg>
+        </div>
+      </div>
+      <div class="metric-body">
+        <div class="metric-val-large" id="phValueDisplay">7.2</div>
+        
+        <!-- Rainbow Spectrum Bar -->
+        <div class="ph-spectrum-bar">
+          <div class="ph-indicator-pin" id="phIndicatorPin"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ----------------------------------------------------------------------
+         BOX 4: SYSTEM MODE
+         ---------------------------------------------------------------------- -->
+    <div class="neo-card">
+      <div class="card-header-bar">
+        <span class="card-title-text">System Mode</span>
+        <!-- Mode Toggle Switch -->
+        <label class="switch-pill" title="Toggle Auto / Manual">
+          <input type="checkbox" id="toggleSystemMode" checked>
+          <span class="slider-track teal"></span>
+        </label>
+      </div>
+      <div class="metric-body">
+        <div class="system-mode-text" id="systemModeLabel">MANUAL</div>
+        
+        <!-- ECG Pulse Waveform -->
+        <div class="ecg-pulse-graphic">
+          <svg width="48" height="32" viewBox="0 0 48 32" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="2,16 12,16 18,6 24,26 30,12 36,18 46,18"></polyline>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- ----------------------------------------------------------------------
+         BOX 5: APPLIANCE CONTROL
+         ---------------------------------------------------------------------- -->
+    <div class="neo-card">
+      <div class="card-header-bar">
+        <span class="card-title-text">Appliance Control</span>
+      </div>
+
+      <div class="appliance-layout">
+        <!-- Big Tactile Buttons (Lightbulb & Fan) -->
+        <div class="tactile-buttons-group">
+          <!-- Lightbulb Button -->
+          <button class="tactile-btn light-active" id="btnLightTactile" title="Toggle Lighting Appliance" type="button">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="9" y1="18" x2="15" y2="18"></line>
+              <line x1="10" y1="22" x2="14" y2="22"></line>
+              <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"></path>
+              <circle cx="12" cy="8" r="1.5" fill="currentColor"></circle>
+            </svg>
+          </button>
+
+          <!-- Fan Propeller Button -->
+          <button class="tactile-btn fan-active" id="btnFanTactile" title="Toggle Ventilation Fan" type="button">
+            <span class="fan-spinner speed-med" id="fanSpinner">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10.827 16.379a6.082 6.082 0 0 1-8.618-7.002l5.412 1.45a6.082 6.082 0 0 1 7.002-8.618l-1.45 5.412a6.082 6.082 0 0 1 8.618 7.002l-5.412-1.45a6.082 6.082 0 0 1-7.002 8.618l1.45-5.412Z"></path>
+                <circle cx="12" cy="12" r="2.5" fill="currentColor"></circle>
+              </svg>
+            </span>
+          </button>
+        </div>
+
+        <!-- Controls Stack -->
+        <div class="appliance-controls-stack">
+          <!-- Line 1: Ltg: ON/OFF and toggles -->
+          <div class="control-line-row">
+            <span class="control-label-text">Ltg:ON/OFF</span>
+            <!-- Amber/Orange Toggle for Light -->
+            <label class="switch-pill">
+              <input type="checkbox" id="toggleLightSwitch" checked>
+              <span class="slider-track amber"></span>
+            </label>
+
+            <!-- Secondary Teal Toggle -->
+            <label class="switch-pill">
+              <input type="checkbox" id="toggleAuxTeal" checked>
+              <span class="slider-track teal"></span>
+            </label>
+          </div>
+
+          <!-- Line 2: Fan speed segmented pills -->
+          <div class="control-line-row">
+            <span class="control-label-text">Fan:LOW</span>
+            <div class="segmented-fan-bar">
+              <button class="fan-pill-opt" data-speed="MED" type="button">MED</button>
+              <button class="fan-pill-opt" data-speed="HIGH" type="button">HIGH</button>
+              <button class="fan-pill-opt" data-speed="AUTO" type="button">AUTO</button>
+            </div>
+          </div>
+
+          <!-- Line 3: Blue toggle & Scene Select button -->
+          <div class="control-line-row">
+            <label class="switch-pill">
+              <input type="checkbox" id="toggleAuxBlue">
+              <span class="slider-track blue"></span>
+            </label>
+
+            <button class="btn-scene-select" id="btnSceneSelect" type="button">Scene Select</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ----------------------------------------------------------------------
+         BOX 6: HISTORICAL PERFORMANCE & ANALYTICS
+         ---------------------------------------------------------------------- -->
+    <div class="neo-card chart-card-container">
+      <div class="card-header-bar" style="margin-bottom: 8px;">
+        <span class="card-title-text">Historical Performance & Analytics</span>
+      </div>
+
+      <!-- Legend -->
+      <div class="chart-legend-row">
+        <div class="legend-item">
+          <span class="legend-line-dot" style="background: #ea580c;"></span>
+          <span>Temperature</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-line-dot" style="background: #2563eb;"></span>
+          <span>Humidity</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-line-dot" style="background: #0d9488;"></span>
+          <span>pH</span>
+        </div>
+      </div>
+
+      <!-- Chart Canvas -->
+      <div class="chart-svg-container">
+        <canvas id="analyticsChart" class="analytics-chart-canvas"></canvas>
+      </div>
+    </div>
+
+    <!-- ----------------------------------------------------------------------
+         BOX 7: SENSOR LOG & HISTORY
+         ---------------------------------------------------------------------- -->
+    <div class="neo-card" style="padding-bottom: 28px;">
       <div class="table-card-header">
         <span class="card-title-text">Sensor Log & History</span>
         <div class="table-actions-deck">
@@ -389,13 +385,13 @@
         </table>
       </div>
 
-      <!-- Bottom Right Sparkle Decor matching original image -->
+      <!-- Bottom Right Sparkle Decor -->
       <div class="table-sparkle-decor" aria-hidden="true">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="#64748b" style="filter: drop-shadow(0 0 8px rgba(148, 163, 184, 0.4));">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="#ea580c" style="filter: drop-shadow(0 0 8px rgba(234, 88, 12, 0.4));">
           <path d="M12 0L14.2 9.8L24 12L14.2 14.2L12 24L9.8 14.2L0 12L9.8 9.8L12 0Z"/>
         </svg>
       </div>
-    </section>
+    </div>
 
   </main>
 
@@ -406,7 +402,7 @@
   <div class="modal-overlay-bg" id="sceneModal">
     <div class="scene-modal-card">
       <div class="modal-header-line">
-        <h3 style="color: #f1f5f9; font-size: 1.15rem; font-weight: 600;">Select Environmental Scene</h3>
+        <h3 style="color: #7c2d12; font-size: 1.2rem; font-weight: 700;">Select Environmental Scene</h3>
         <button class="modal-close-btn" id="btnCloseSceneModal" type="button">&times;</button>
       </div>
 
@@ -429,7 +425,7 @@
         </div>
       </div>
 
-      <p style="font-size: 0.78rem; color: #64748b; text-align: center;">Clicking any preset automatically adjusts real-time sensor targets and appliance relays.</p>
+      <p style="font-size: 0.8rem; color: #78716c; text-align: center;">Clicking any preset automatically adjusts real-time sensor targets and appliance relays.</p>
     </div>
   </div>
 
