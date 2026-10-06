@@ -1,6 +1,6 @@
 /**
- * AETERNA SmartHome IoT - Single Page Application Core
- * Complete client-side state, LocalStorage authentication & telemetry simulation.
+ * Smart Home IoT Dashboard - Single Page Application Core
+ * Client-side state, LocalStorage authentication & real-time telemetry controls.
  */
 
 // LocalStorage Keys
@@ -8,11 +8,10 @@ const STORAGE_KEYS = {
   USERS: 'aeterna_users',
   SESSION: 'aeterna_auth_user',
   LOGS: 'aeterna_sensor_logs',
-  SETTINGS: 'aeterna_settings',
-  CONTROLS: 'aeterna_controls_state'
+  SETTINGS: 'aeterna_settings'
 };
 
-// Default Demo User
+// Default User for quick sign in
 const DEFAULT_DEMO_USER = {
   name: 'Nirmal Kumar',
   email: 'nirmal.18@proto.tech',
@@ -21,19 +20,18 @@ const DEFAULT_DEMO_USER = {
   createdAt: '2023-11-20T08:00:00Z'
 };
 
-// Default Sensor History matching the user screenshot
+// Default Sensor History matching the table
 const DEFAULT_LOGS = [
-  { date: '2023-11-20 09:15', time: '09:15', temp: 22.1, hum: 44.8, ph: 7.18, note: 'Routine Check' },
-  { date: '2023-11-20 09:15', time: '09:48', temp: 22.1, hum: 44.8, ph: 7.18, note: 'Routine Check' },
-  { date: '2023-11-20 09:21', time: '09:30', temp: 22.1, hum: 44.8, ph: 7.18, note: 'Routine Check' }
+  { date: '2023-11-20 09:15', time: '09:15', temp: 22.1, hum: 44.8, note: 'Routine Check' },
+  { date: '2023-11-20 09:15', time: '09:48', temp: 22.1, hum: 44.8, note: 'Routine Check' },
+  { date: '2023-11-20 09:21', time: '09:30', temp: 22.1, hum: 44.8, note: 'Routine Check' }
 ];
 
-// 24h Historical Analytics Data matching screenshot
+// 24h Historical Analytics Data (Temperature & Humidity)
 const ANALYTICS_DATA = {
   labels: ['0h', '2h', '4h', '6h', '8h', '10h', '12h', '14h', '16h', '18h', '20h', '22h', '24h'],
   temp:     [7,   9,  15,  13,  12,  13,  14,  16,  18,  20,  14,  17,  15],
-  humidity: [12, 10,  10,  13,  14,  13,  14,  16,  18,  19,  17,  15,  13],
-  ph:       [6,   7,   8,   7,   8,   9,   8,   7,   7,   8,   7,   9,   7]
+  humidity: [12, 10,  10,  13,  14,  13,  14,  16,  18,  19,  17,  15,  13]
 };
 
 // App State
@@ -41,14 +39,8 @@ let state = {
   user: null,
   temperature: 22.0,
   humidity: 45,
-  ph: 7.20,
   systemMode: 'MANUAL', // 'MANUAL' or 'AUTO'
-  lightOn: true,
-  auxTealOn: true,
-  auxBlueOn: false,
-  fanOn: true,
-  fanSpeed: 'MED', // 'LOW', 'MED', 'HIGH', 'AUTO'
-  currentScene: 'Default Balanced',
+  applianceOn: true,
   simActive: true,
   simInterval: null,
   logs: []
@@ -107,15 +99,12 @@ function getStoredLogs() {
    AUTHENTICATION LOGIC (LOCALSTORAGE BASED)
    ========================================================================== */
 function initAuthUI() {
-  const authOverlay = document.getElementById('authOverlay');
   const tabSignIn = document.getElementById('tabSignIn');
   const tabSignUp = document.getElementById('tabSignUp');
   const authForm = document.getElementById('authForm');
   const authSubmitBtn = document.getElementById('authSubmitBtn');
-  const btnDemoQuick = document.getElementById('btnDemoQuick');
   const nameGroup = document.getElementById('nameGroup');
   const confirmPassGroup = document.getElementById('confirmPassGroup');
-  const authFeedback = document.getElementById('authFeedback');
 
   let currentTab = 'signin'; // 'signin' or 'signup'
 
@@ -138,13 +127,6 @@ function initAuthUI() {
     confirmPassGroup.style.display = 'block';
     authSubmitBtn.textContent = 'Create Local Account';
     hideFeedback();
-  });
-
-  // Demo one-click sign in
-  btnDemoQuick.addEventListener('click', () => {
-    document.getElementById('authEmail').value = DEFAULT_DEMO_USER.email;
-    document.getElementById('authPassword').value = DEFAULT_DEMO_USER.password;
-    authenticateUser(DEFAULT_DEMO_USER.email, DEFAULT_DEMO_USER.password);
   });
 
   // Form Submission
@@ -231,7 +213,7 @@ function authenticateUser(email, password) {
     showFeedback('Sign in successful! Entering dashboard...', 'success');
     loginSuccess(matched);
   } else {
-    showFeedback('Invalid credentials. Check email & password or use Demo Sign In.', 'error');
+    showFeedback('Invalid credentials. Check email & password.', 'error');
   }
 }
 
@@ -310,210 +292,85 @@ function logoutUser() {
    DASHBOARD METRICS & CONTROLS INTERACTION
    ========================================================================== */
 function initDashboardControls() {
-  // System Mode Toggle (Teal switch in top row card 4)
-  const systemModeToggle = document.getElementById('toggleSystemMode');
-  const systemModeLabel = document.getElementById('systemModeLabel');
-  systemModeToggle.addEventListener('change', (e) => {
-    state.systemMode = e.target.checked ? 'MANUAL' : 'AUTO';
-    systemModeLabel.textContent = state.systemMode;
+  // System Mode Option Pills (MANUAL / AUTOMATIC)
+  const modePills = document.querySelectorAll('.mode-pill-opt');
+  modePills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      const mode = pill.dataset.mode;
+      state.systemMode = mode;
+      modePills.forEach(p => {
+        const isActive = p.dataset.mode === mode;
+        p.classList.toggle('active', isActive);
+        p.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      });
+    });
   });
 
-  // Appliance Control: Lightbulb Tactile Button
-  const btnLightTactile = document.getElementById('btnLightTactile');
-  const toggleLightSwitch = document.getElementById('toggleLightSwitch');
-
-  function updateLightUI(isOn) {
-    state.lightOn = isOn;
-    toggleLightSwitch.checked = isOn;
-    if (isOn) {
-      btnLightTactile.classList.add('light-active');
-    } else {
-      btnLightTactile.classList.remove('light-active');
-    }
-  }
-
-  btnLightTactile.addEventListener('click', () => {
-    updateLightUI(!state.lightOn);
-  });
-  toggleLightSwitch.addEventListener('change', (e) => {
-    updateLightUI(e.target.checked);
-  });
-
-  // Appliance Control: Fan Tactile Button & Speeds
-  const btnFanTactile = document.getElementById('btnFanTactile');
-  const fanPills = document.querySelectorAll('.fan-pill-opt');
-  const fanSpinner = document.getElementById('fanSpinner');
-  const fanLowLabel = document.querySelector('.control-label-text');
-
-  function updateFanUI(isOn, speed = state.fanSpeed) {
-    state.fanOn = isOn;
-    state.fanSpeed = speed;
-
-    if (isOn) {
-      btnFanTactile.classList.add('fan-active');
-      fanSpinner.className = `fan-spinner speed-${speed.toLowerCase()}`;
-    } else {
-      btnFanTactile.classList.remove('fan-active');
-      fanSpinner.className = 'fan-spinner';
-    }
-
-    fanPills.forEach(pill => {
-      if (pill.dataset.speed === speed) {
-        pill.classList.add('active');
-      } else {
-        pill.classList.remove('active');
+  // Appliance Control Power Toggle
+  const btnAppliancePower = document.getElementById('btnAppliancePower');
+  const appliancePowerLabel = document.getElementById('appliancePowerLabel');
+  if (btnAppliancePower) {
+    btnAppliancePower.addEventListener('click', () => {
+      state.applianceOn = !state.applianceOn;
+      btnAppliancePower.classList.toggle('is-on', state.applianceOn);
+      btnAppliancePower.setAttribute('aria-pressed', state.applianceOn ? 'true' : 'false');
+      if (appliancePowerLabel) {
+        appliancePowerLabel.textContent = state.applianceOn ? 'ON' : 'OFF';
       }
     });
   }
 
-  btnFanTactile.addEventListener('click', () => {
-    updateFanUI(!state.fanOn);
-  });
-
-  // Fan:LOW label click to select LOW
-  document.querySelectorAll('.control-label-text').forEach(lbl => {
-    if (lbl.textContent.includes('Fan:LOW')) {
-      lbl.style.cursor = 'pointer';
-      lbl.title = 'Set Fan to LOW';
-      lbl.addEventListener('click', () => {
-        updateFanUI(true, 'LOW');
-      });
-    }
-  });
-
-  fanPills.forEach(pill => {
-    pill.addEventListener('click', () => {
-      const speed = pill.dataset.speed;
-      updateFanUI(true, speed);
-    });
-  });
-
-  // Aux switches
-  const toggleAuxTeal = document.getElementById('toggleAuxTeal');
-  toggleAuxTeal.addEventListener('change', (e) => {
-    state.auxTealOn = e.target.checked;
-  });
-
-  const toggleAuxBlue = document.getElementById('toggleAuxBlue');
-  toggleAuxBlue.addEventListener('change', (e) => {
-    state.auxBlueOn = e.target.checked;
-  });
-
-  // Scene Select Modal
-  const btnSceneSelect = document.getElementById('btnSceneSelect');
-  const sceneModal = document.getElementById('sceneModal');
-  const btnCloseSceneModal = document.getElementById('btnCloseSceneModal');
-  const sceneCards = document.querySelectorAll('.scene-preset-card');
-
-  btnSceneSelect.addEventListener('click', () => {
-    sceneModal.classList.add('active');
-  });
-
-  btnCloseSceneModal.addEventListener('click', () => {
-    sceneModal.classList.remove('active');
-  });
-
-  sceneModal.addEventListener('click', (e) => {
-    if (e.target === sceneModal) {
-      sceneModal.classList.remove('active');
-    }
-  });
-
-  sceneCards.forEach(card => {
-    card.addEventListener('click', () => {
-      sceneCards.forEach(c => c.classList.remove('selected'));
-      card.classList.add('selected');
-      const scene = card.dataset.scene;
-      applyScenePreset(scene);
-      setTimeout(() => {
-        sceneModal.classList.remove('active');
-      }, 300);
-    });
-  });
-
   // Top header quick notification bell
   const btnNotifications = document.getElementById('btnNotifications');
-  btnNotifications.addEventListener('click', () => {
-    alert('AETERNA Notifications:\n• Temperature optimal: 22.0°C\n• Humidity stable: 45%\n• pH reading balanced: 7.20\n• Appliance relays operating normally');
-  });
+  if (btnNotifications) {
+    btnNotifications.addEventListener('click', () => {
+      alert('Smart Home Notifications:\n• Temperature optimal: 22.0°C\n• Humidity stable: 45%\n• Appliance relay operating normally');
+    });
+  }
 
   // Settings button
   const btnSettings = document.getElementById('btnSettings');
-  btnSettings.addEventListener('click', () => {
-    const newRate = prompt('Simulation telemetry refresh interval in seconds (default: 4):', '4');
-    if (newRate && !isNaN(newRate) && Number(newRate) >= 1) {
-      clearInterval(state.simInterval);
-      state.simInterval = setInterval(updateLiveTelemetry, Number(newRate) * 1000);
-      alert(`Telemetry interval updated to ${newRate} seconds.`);
-    }
-  });
-
-  // Table buttons
-  document.getElementById('btnAddLog').addEventListener('click', () => {
-    const note = prompt('Enter note for new log entry:', 'Manual Inspection');
-    if (note !== null) {
-      addSensorLog(note.trim() || 'Manual Check');
-    }
-  });
-
-  document.getElementById('btnExportCsv').addEventListener('click', () => {
-    exportLogsToCSV();
-  });
-}
-
-function applyScenePreset(sceneName) {
-  state.currentScene = sceneName;
-  if (sceneName === 'eco') {
-    state.temperature = 20.0;
-    state.humidity = 40;
-    state.ph = 7.10;
-    state.lightOn = false;
-    state.fanSpeed = 'LOW';
-  } else if (sceneName === 'hydro') {
-    state.temperature = 24.5;
-    state.humidity = 65;
-    state.ph = 6.85;
-    state.lightOn = true;
-    state.fanSpeed = 'HIGH';
-  } else if (sceneName === 'night') {
-    state.temperature = 19.5;
-    state.humidity = 48;
-    state.ph = 7.25;
-    state.lightOn = false;
-    state.fanSpeed = 'AUTO';
-  } else {
-    // Default Balanced
-    state.temperature = 22.0;
-    state.humidity = 45;
-    state.ph = 7.20;
-    state.lightOn = true;
-    state.fanSpeed = 'MED';
+  if (btnSettings) {
+    btnSettings.addEventListener('click', () => {
+      const newRate = prompt('Simulation telemetry refresh interval in seconds (default: 4):', '4');
+      if (newRate && !isNaN(newRate) && Number(newRate) >= 1) {
+        clearInterval(state.simInterval);
+        state.simInterval = setInterval(updateLiveTelemetry, Number(newRate) * 1000);
+        alert(`Telemetry interval updated to ${newRate} seconds.`);
+      }
+    });
   }
 
-  // Update controls
-  document.getElementById('toggleLightSwitch').checked = state.lightOn;
-  const btnLight = document.getElementById('btnLightTactile');
-  if (state.lightOn) btnLight.classList.add('light-active');
-  else btnLight.classList.remove('light-active');
+  // Table buttons
+  const btnAddLog = document.getElementById('btnAddLog');
+  if (btnAddLog) {
+    btnAddLog.addEventListener('click', () => {
+      const note = prompt('Enter note for new log entry:', 'Manual Inspection');
+      if (note !== null) {
+        addSensorLog(note.trim() || 'Manual Check');
+      }
+    });
+  }
 
-  document.querySelectorAll('.fan-pill-opt').forEach(pill => {
-    if (pill.dataset.speed === state.fanSpeed) pill.classList.add('active');
-    else pill.classList.remove('active');
-  });
-  document.getElementById('fanSpinner').className = `fan-spinner speed-${state.fanSpeed.toLowerCase()}`;
-
-  renderMetricsUI();
+  const btnExportCsv = document.getElementById('btnExportCsv');
+  if (btnExportCsv) {
+    btnExportCsv.addEventListener('click', () => {
+      exportLogsToCSV();
+    });
+  }
 }
 
 /* ==========================================================================
-   METRICS RENDERING (GAUGE, RESERVOIR, PH BAR)
+   METRICS RENDERING (GAUGE, RESERVOIR)
    ========================================================================== */
 function renderMetricsUI() {
   // 1. Temperature Gauge
-  document.getElementById('tempValueDisplay').textContent = `${state.temperature.toFixed(0)}°C`;
+  const tempDisplay = document.getElementById('tempValueDisplay');
+  if (tempDisplay) {
+    tempDisplay.textContent = `${state.temperature.toFixed(0)}°C`;
+  }
   const gaugeArc = document.getElementById('gaugeArcProgress');
   if (gaugeArc) {
-    // Calculate arc offset: 200 is full, range ~15°C to 35°C
     const minT = 10, maxT = 35;
     const clamped = Math.min(Math.max(state.temperature, minT), maxT);
     const pct = (clamped - minT) / (maxT - minT);
@@ -522,20 +379,13 @@ function renderMetricsUI() {
   }
 
   // 2. Humidity Reservoir
-  document.getElementById('humidityValueDisplay').textContent = `${Math.round(state.humidity)}%`;
+  const humDisplay = document.getElementById('humidityValueDisplay');
+  if (humDisplay) {
+    humDisplay.textContent = `${Math.round(state.humidity)}%`;
+  }
   const tankFill = document.getElementById('humidityTankFill');
   if (tankFill) {
     tankFill.style.height = `${Math.min(Math.max(state.humidity, 10), 95)}%`;
-  }
-
-  // 3. pH Bar
-  document.getElementById('phValueDisplay').textContent = state.ph.toFixed(1);
-  const phPin = document.getElementById('phIndicatorPin');
-  if (phPin) {
-    // pH range 0 to 14
-    const clampedPh = Math.min(Math.max(state.ph, 4), 10);
-    const leftPct = ((clampedPh - 4) / (10 - 4)) * 80 + 10;
-    phPin.style.left = `${leftPct}%`;
   }
 }
 
@@ -553,19 +403,15 @@ function updateLiveTelemetry() {
   // Realistic micro variations
   const deltaTemp = (Math.random() - 0.5) * 0.4;
   const deltaHum = (Math.random() - 0.5) * 1.0;
-  const deltaPh = (Math.random() - 0.5) * 0.04;
 
   state.temperature = Math.round((state.temperature + deltaTemp) * 10) / 10;
   state.humidity = Math.round(state.humidity + deltaHum);
-  state.ph = Math.round((state.ph + deltaPh) * 100) / 100;
 
   // Keep in plausible bounds
   if (state.temperature < 21) state.temperature = 21.4;
   if (state.temperature > 23) state.temperature = 22.2;
   if (state.humidity < 42) state.humidity = 43;
   if (state.humidity > 48) state.humidity = 46;
-  if (state.ph < 7.10) state.ph = 7.15;
-  if (state.ph > 7.30) state.ph = 7.22;
 
   renderMetricsUI();
 }
@@ -578,7 +424,6 @@ function initChart() {
   if (!canvas) return;
 
   const ctx = canvas.getContext('2d');
-  let animationProgress = 0;
 
   function resizeAndDraw() {
     const rect = canvas.parentElement.getBoundingClientRect();
@@ -644,7 +489,6 @@ function initChart() {
         if (i === 0) {
           ctx.moveTo(x, y);
         } else {
-          // Smooth curve using bezier
           const prevX = padLeft + (i - 1) * stepX;
           const prevVal = data[i - 1];
           const prevY = padTop + chartH - ((prevVal / yMax) * chartH * progress);
@@ -676,14 +520,11 @@ function initChart() {
       ctx.restore();
     }
 
-    // 1. Humidity (Crisp Royal Blue)
-    drawSeries(ANALYTICS_DATA.humidity, '#2563eb', '#60a5fa');
+    // 1. Humidity (Purple/Indigo)
+    drawSeries(ANALYTICS_DATA.humidity, '#6366f1', '#818cf8');
 
-    // 2. Temperature (Vibrant Warm Orange)
-    drawSeries(ANALYTICS_DATA.temp, '#ea580c', '#fb923c');
-
-    // 3. pH (Teal)
-    drawSeries(ANALYTICS_DATA.ph, '#0d9488', '#2dd4bf');
+    // 2. Temperature (Warm Amber / Orange)
+    drawSeries(ANALYTICS_DATA.temp, '#f59e0b', '#fbbf24');
   }
 
   window.addEventListener('resize', resizeAndDraw);
@@ -705,7 +546,6 @@ function renderLogsTable() {
       <td>${log.time}</td>
       <td>${Number(log.temp).toFixed(1)}</td>
       <td>${Number(log.hum).toFixed(1)}</td>
-      <td>${Number(log.ph).toFixed(2)}</td>
       <td>${log.note || 'Routine Check'}</td>
     `;
     tbody.appendChild(tr);
@@ -722,7 +562,6 @@ function addSensorLog(note = 'Routine Check') {
     time: timeStr,
     temp: state.temperature,
     hum: state.humidity,
-    ph: state.ph,
     note: note
   };
 
@@ -732,13 +571,12 @@ function addSensorLog(note = 'Routine Check') {
 }
 
 function exportLogsToCSV() {
-  const headers = ['Date', 'Time', 'Temperature (C)', 'Humidity (%)', 'pH', 'Notes'];
+  const headers = ['Date', 'Time', 'Temperature (C)', 'Humidity (%)', 'Notes'];
   const rows = state.logs.map(l => [
     `"${l.date}"`,
     `"${l.time}"`,
     l.temp,
     l.hum,
-    l.ph,
     `"${l.note}"`
   ]);
 
@@ -748,7 +586,7 @@ function exportLogsToCSV() {
   const encodedUri = encodeURI(csvContent);
   const link = document.createElement('a');
   link.setAttribute('href', encodedUri);
-  link.setAttribute('download', `aeterna_sensor_log_${new Date().toISOString().slice(0,10)}.csv`);
+  link.setAttribute('download', `smarthome_sensor_log_${new Date().toISOString().slice(0,10)}.csv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
