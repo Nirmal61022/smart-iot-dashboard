@@ -16,7 +16,8 @@ const STORAGE_KEYS = {
 const ANALYTICS_DATA = {
   labels: ['0h', '2h', '4h', '6h', '8h', '10h', '12h', '14h', '16h', '18h', '20h', '22h', '24h'],
   temp:     [7,   9,  15,  13,  12,  13,  14,  16,  18,  20,  14,  17,  15],
-  humidity: [12, 10,  10,  13,  14,  13,  14,  16,  18,  19,  17,  15,  13]
+  humidity: [12, 10,  10,  13,  14,  13,  14,  16,  18,  19,  17,  15,  13],
+  ph:       [6,   7,   8,   6,   7,   8,   7,   6,   6,   7,   6,   8,   6]
 };
 
 // App State
@@ -24,8 +25,12 @@ let state = {
   user: null,
   temperature: 22.0,
   humidity: 45,
+  ph: 7.2,
   systemMode: 'MANUAL',
-  applianceOn: true,
+  lightOn: true,
+  fanOn: true,
+  fanSpeed: 'LOW',
+  automationEnabled: false,
   simActive: true,
   simInterval: null,
   logInterval: null,
@@ -73,6 +78,7 @@ function getStoredLogs() {
       time: log.time,
       temp: log.temp,
       hum: log.hum,
+      ph: Number.isFinite(Number(log.ph)) ? Number(log.ph) : 7.2,
       note: log.note
       }))
       : [];
@@ -243,6 +249,7 @@ function loginSuccess(user) {
     }, 400);
 
     updateUserUI(user);
+    window.dispatchEvent(new Event('resize'));
   }, 400);
 }
 
@@ -275,30 +282,60 @@ function logoutUser() {
    DASHBOARD METRICS & CONTROLS INTERACTION
    ========================================================================== */
 function initDashboardControls() {
-  document.querySelectorAll('.mode-pill-opt').forEach(button => {
-    button.addEventListener('click', () => {
-      state.systemMode = button.dataset.mode;
-      document.querySelectorAll('.mode-pill-opt').forEach(option => {
-        const isActive = option === button;
-        option.classList.toggle('active', isActive);
-        option.setAttribute('aria-pressed', String(isActive));
-      });
-    });
+  const systemModeButton = document.getElementById('btnSystemMode');
+  systemModeButton.addEventListener('click', () => {
+    state.systemMode = state.systemMode === 'MANUAL' ? 'AUTOMATIC' : 'MANUAL';
+    state.automationEnabled = state.systemMode === 'AUTOMATIC';
+    renderAutomationState();
+    renderSystemMode();
   });
 
-  const appliancePowerButton = document.getElementById('btnAppliancePower');
-  const appliancePowerLabel = document.getElementById('appliancePowerLabel');
-  appliancePowerButton.addEventListener('click', () => {
-    state.applianceOn = !state.applianceOn;
-    appliancePowerButton.classList.toggle('is-on', state.applianceOn);
-    appliancePowerButton.setAttribute('aria-pressed', String(state.applianceOn));
-    appliancePowerLabel.textContent = state.applianceOn ? 'ON' : 'OFF';
+  ['btnLightPower', 'btnLightTile'].forEach(id => {
+    document.getElementById(id).addEventListener('click', () => setLightPower(!state.lightOn));
+  });
+  ['btnFanPower', 'btnFanTile'].forEach(id => {
+    document.getElementById(id).addEventListener('click', () => setFanPower(!state.fanOn));
+  });
+
+  document.querySelectorAll('[data-fan-speed]').forEach(button => {
+    button.addEventListener('click', () => setFanSpeed(button.dataset.fanSpeed));
+  });
+
+  const automationButton = document.getElementById('btnAutomation');
+  automationButton.addEventListener('click', () => {
+    state.automationEnabled = !state.automationEnabled;
+    state.systemMode = state.automationEnabled ? 'AUTOMATIC' : 'MANUAL';
+    renderAutomationState();
+    renderSystemMode();
+  });
+
+  const sceneModal = document.getElementById('sceneModal');
+  const closeSceneModal = () => {
+    sceneModal.classList.remove('active');
+    sceneModal.setAttribute('aria-hidden', 'true');
+  };
+  document.getElementById('btnSceneSelect').addEventListener('click', () => {
+    sceneModal.classList.add('active');
+    sceneModal.setAttribute('aria-hidden', 'false');
+  });
+  document.getElementById('btnCloseSceneModal').addEventListener('click', closeSceneModal);
+  sceneModal.addEventListener('click', event => {
+    if (event.target === sceneModal) closeSceneModal();
+  });
+  document.querySelectorAll('[data-scene]').forEach(button => {
+    button.addEventListener('click', () => {
+      applyScene(button.dataset.scene);
+      closeSceneModal();
+    });
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && sceneModal.classList.contains('active')) closeSceneModal();
   });
 
   // Top header quick notification bell
   const btnNotifications = document.getElementById('btnNotifications');
   btnNotifications.addEventListener('click', () => {
-    alert('System notifications:\n• Temperature optimal: 22.0°C\n• Humidity stable: 45%\n• Appliance relays operating normally');
+    alert(`System notifications:\n• Temperature optimal: ${state.temperature.toFixed(1)}°C\n• Humidity stable: ${state.humidity}%\n• pH level stable: ${state.ph.toFixed(1)}\n• Appliance relays operating normally`);
   });
 
   // Settings button
@@ -325,6 +362,78 @@ function initDashboardControls() {
   });
 }
 
+function renderSystemMode() {
+  const isAutomatic = state.systemMode === 'AUTOMATIC';
+  const button = document.getElementById('btnSystemMode');
+  document.getElementById('systemModeValue').textContent = state.systemMode;
+  button.classList.toggle('is-on', isAutomatic);
+  button.setAttribute('aria-checked', String(isAutomatic));
+  button.setAttribute('aria-label', isAutomatic ? 'Switch to manual mode' : 'Switch to automatic mode');
+}
+
+function renderAutomationState() {
+  const button = document.getElementById('btnAutomation');
+  button.classList.toggle('is-on', state.automationEnabled);
+  button.setAttribute('aria-checked', String(state.automationEnabled));
+  button.setAttribute('aria-label', state.automationEnabled ? 'Disable automation' : 'Enable automation');
+}
+
+function setLightPower(isOn) {
+  state.lightOn = isOn;
+  const toggle = document.getElementById('btnLightPower');
+  const tile = document.getElementById('btnLightTile');
+  toggle.classList.toggle('is-on', isOn);
+  toggle.setAttribute('aria-checked', String(isOn));
+  toggle.setAttribute('aria-label', isOn ? 'Turn lights off' : 'Turn lights on');
+  tile.classList.toggle('light-active', isOn);
+  tile.setAttribute('aria-pressed', String(isOn));
+  document.getElementById('lightStatusLabel').textContent = isOn ? 'ON' : 'OFF';
+}
+
+function setFanPower(isOn) {
+  state.fanOn = isOn;
+  const toggle = document.getElementById('btnFanPower');
+  const tile = document.getElementById('btnFanTile');
+  toggle.classList.toggle('is-on', isOn);
+  toggle.setAttribute('aria-checked', String(isOn));
+  toggle.setAttribute('aria-label', isOn ? 'Turn fan off' : 'Turn fan on');
+  tile.classList.toggle('fan-active', isOn);
+  tile.setAttribute('aria-pressed', String(isOn));
+  document.getElementById('fanStatusLabel').textContent = isOn ? state.fanSpeed : 'OFF';
+}
+
+function setFanSpeed(speed) {
+  if (!['LOW', 'MED', 'HIGH', 'AUTO'].includes(speed)) return;
+  state.fanSpeed = speed;
+  document.getElementById('fanStatusLabel').textContent = state.fanOn ? speed : 'OFF';
+  document.querySelectorAll('[data-fan-speed]').forEach(button => {
+    const selected = button.dataset.fanSpeed === speed;
+    button.classList.toggle('active', selected);
+    button.setAttribute('aria-pressed', String(selected));
+  });
+  const fanIcon = document.querySelector('#btnFanTile .fan-spinner');
+  fanIcon.classList.remove('speed-low', 'speed-med', 'speed-high', 'speed-auto');
+  fanIcon.classList.add(`speed-${speed.toLowerCase()}`);
+}
+
+function applyScene(scene) {
+  const scenes = {
+    focus: { light: true, fan: true, speed: 'LOW', automatic: false },
+    relax: { light: true, fan: true, speed: 'MED', automatic: false },
+    away: { light: false, fan: false, speed: 'AUTO', automatic: false },
+    auto: { light: state.lightOn, fan: state.fanOn, speed: state.fanSpeed, automatic: true }
+  };
+  const selected = scenes[scene];
+  if (!selected) return;
+  setLightPower(selected.light);
+  setFanPower(selected.fan);
+  setFanSpeed(selected.speed);
+  state.automationEnabled = selected.automatic;
+  state.systemMode = selected.automatic ? 'AUTOMATIC' : 'MANUAL';
+  renderAutomationState();
+  renderSystemMode();
+}
+
 /* ==========================================================================
    METRICS RENDERING (GAUGE, RESERVOIR)
    ========================================================================== */
@@ -347,7 +456,9 @@ function renderMetricsUI() {
   if (tankFill) {
     tankFill.style.height = `${Math.min(Math.max(state.humidity, 10), 95)}%`;
   }
-
+  document.getElementById('phValueDisplay').textContent = state.ph.toFixed(1);
+  document.getElementById('phRangeMarker').style.left = `${Math.min(Math.max(state.ph / 14 * 100, 0), 100)}%`;
+  renderSystemMode();
 }
 
 /* ==========================================================================
@@ -364,14 +475,18 @@ function updateLiveTelemetry() {
   // Realistic micro variations
   const deltaTemp = (Math.random() - 0.5) * 0.4;
   const deltaHum = (Math.random() - 0.5) * 1.0;
+  const deltaPh = (Math.random() - 0.5) * 0.08;
   state.temperature = Math.round((state.temperature + deltaTemp) * 10) / 10;
   state.humidity = Math.round(state.humidity + deltaHum);
+  state.ph = Math.round((state.ph + deltaPh) * 10) / 10;
 
   // Keep in plausible bounds
   if (state.temperature < 21) state.temperature = 21.4;
   if (state.temperature > 23) state.temperature = 22.2;
   if (state.humidity < 42) state.humidity = 43;
   if (state.humidity > 48) state.humidity = 46;
+  if (state.ph < 6.8) state.ph = 6.9;
+  if (state.ph > 7.5) state.ph = 7.4;
   renderMetricsUI();
 }
 
@@ -407,11 +522,11 @@ function initChart() {
     const chartH = h - padTop - padBottom;
 
     const yMax = 25;
-    const ySteps = [0, 5, 10, 12, 15, 20, 25];
+    const ySteps = [0, 5, 10, 15, 20, 25];
 
     // Grid Lines & Y-axis labels
-    ctx.strokeStyle = 'rgba(121, 99, 77, 0.18)';
-    ctx.fillStyle = '#796351';
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.12)';
+    ctx.fillStyle = '#758198';
     ctx.font = '10px "Plus Jakarta Sans", sans-serif';
     ctx.textAlign = 'right';
     ctx.textBaseline = 'middle';
@@ -474,18 +589,16 @@ function initChart() {
         ctx.fillStyle = dotColor;
         ctx.fill();
         ctx.lineWidth = 1;
-        ctx.strokeStyle = '#fffaf5';
+        ctx.strokeStyle = '#171d29';
         ctx.stroke();
       });
 
       ctx.restore();
     }
 
-    // 1. Humidity (Purple-Indigo)
     drawSeries(ANALYTICS_DATA.humidity, '#6366f1', '#818cf8');
-
-    // 2. Temperature (Warm Amber / Orange)
     drawSeries(ANALYTICS_DATA.temp, '#f59e0b', '#fbbf24');
+    drawSeries(ANALYTICS_DATA.ph, '#14b8a6', '#2dd4bf');
 
   }
 
@@ -508,6 +621,7 @@ function renderLogsTable() {
       <td>${log.time}</td>
       <td>${Number(log.temp).toFixed(1)}</td>
       <td>${Number(log.hum).toFixed(1)}</td>
+      <td>${Number(log.ph).toFixed(1)}</td>
       <td>${log.note || 'Routine Check'}</td>
     `;
     tbody.appendChild(tr);
@@ -524,6 +638,7 @@ function addSensorLog(note = 'Routine Check') {
     time: timeStr,
     temp: state.temperature,
     hum: state.humidity,
+    ph: state.ph,
     note: note
   };
 
@@ -540,12 +655,13 @@ function startLiveLogUpdates() {
 }
 
 function exportLogsToCSV() {
-  const headers = ['Date', 'Time', 'Temperature (C)', 'Humidity (%)', 'Notes'];
+  const headers = ['Date', 'Time', 'Temperature (C)', 'Humidity (%)', 'pH', 'Notes'];
   const rows = state.logs.map(l => [
     `"${l.date}"`,
     `"${l.time}"`,
     l.temp,
     l.hum,
+    l.ph,
     `"${l.note}"`
   ]);
 
