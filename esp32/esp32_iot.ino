@@ -1,3 +1,30 @@
+/**
+ * ============================================================================
+ * SmartHome.IoT — ESP32 Microcontroller Firmware
+ * ============================================================================
+ * Hardware Architecture:
+ * - Microcontroller: ESP32 Dev Module (Wi-Fi 2.4 GHz)
+ * - Temperature & Humidity: DHT11 Sensor (DATA -> GPIO 4)
+ * - Ambient Light Sensor: LDR Voltage Divider (ADC -> GPIO 34)
+ * - Actuator Module: 5V Optocoupled Relay (IN -> GPIO 26, Active-Low)
+ * - Load: Living Room Light / Physical Appliance
+ * 
+ * Cloud Backend:
+ * - Firebase Project: dashboard-e6cea
+ * - Realtime Database: https://dashboard-e6cea-default-rtdb.firebaseio.com
+ * 
+ * Database Schema Synchronized:
+ * - /home/bulb/state: "ON" | "OFF"
+ * - /home/sensors/temperature: float
+ * - /home/sensors/humidity: float
+ * - /home/sensors/ldr: int (ADC 0-4095)
+ * - /home/sensors/timestamp: unsigned long
+ * - /home/system/mode: "MANUAL" | "AUTOMATIC"
+ * - /home/system/ldrThreshold: int
+ * - /home/logs/<timestamp>: telemetry log packet
+ * ============================================================================
+ */
+
 #include <WiFi.h>
 #include <Firebase_ESP_Client.h>
 #include <DHT.h>
@@ -5,63 +32,71 @@
 #include "addons/TokenHelper.h"
 #include "addons/RTDBHelper.h"
 
+// ---------------- Wi-Fi Credentials ----------------
 #define WIFI_SSID "YOUR_WIFI_SSID"
 #define WIFI_PASSWORD "YOUR_WIFI_PASSWORD"
-#define FIREBASE_API_KEY "YOUR_FIREBASE_API_KEY"
-#define FIREBASE_DATABASE_URL "YOUR_DATABASE_URL"
 
+// ---------------- Firebase Configuration ------------
+#define FIREBASE_API_KEY "AIzaSyA-q-ybqAiPyt1Sn5HQ1g6iuv4HmIgaeA0"
+#define FIREBASE_DATABASE_URL "https://bulb-12492-default-rtdb.firebaseio.com"
+
+// ---------------- Hardware Pin Definitions ----------
 #define DHT_PIN 4
 #define LDR_PIN 34
 #define RELAY_PIN 26
 #define DHT_TYPE DHT11
 
-#define LOG_INTERVAL 60000UL
-#define SENSOR_INTERVAL 2000UL
-#define CONTROL_INTERVAL 1000UL
+// Relay Active-Low Configuration (Most 5V relay boards trigger LOW)
 #define RELAY_ACTIVE_LOW true
 
+// Timing Intervals (ms)
+#define SENSOR_READ_INTERVAL 3000UL     // Send sensor telemetry every 3s
+#define CONTROL_READ_INTERVAL 1000UL    // Check bulb & mode every 1s
+#define LOG_INTERVAL 60000UL            // Write historical log record every 60s
+
+// Objects & Instances
+DHT dht(DHT_PIN, DHT_TYPE);
 FirebaseData fbdo;
 FirebaseAuth auth;
 FirebaseConfig config;
-DHT dht(DHT_PIN, DHT_TYPE);
 
+// State Variables
 float temperature = NAN;
 float humidity = NAN;
 int ldrValue = 0;
 bool bulbState = false;
-bool previousBulbState = false;
-String mode = "manual";
-int ldrThreshold = 500;
-bool ldrInverted = false;
+String systemMode = "MANUAL";
+int ldrThreshold = 400;
+
 unsigned long lastSensorMs = 0;
 unsigned long lastControlMs = 0;
 unsigned long lastLogMs = 0;
-unsigned long lastCurrentWriteMs = 0;
 
-void setRelay(bool on) {
+void setPhysicalRelay(bool on) {
   bulbState = on;
-  digitalWrite(RELAY_PIN, RELAY_ACTIVE_LOW ? !on : on);
-}
-
-bool firebaseReady() {
-  return Firebase.ready() && WiFi.status() == WL_CONNECTED;
+  if (RELAY_ACTIVE_LOW) {
+    digitalWrite(RELAY_PIN, on ? LOW : HIGH);
+  } else {
+    digitalWrite(RELAY_PIN, on ? HIGH : LOW);
+  }
 }
 
 void connectWiFi() {
   if (WiFi.status() == WL_CONNECTED) return;
-  Serial.print("Connecting Wi-Fi");
+  Serial.print("Connecting to Wi-Fi");
   WiFi.mode(WIFI_STA);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  unsigned long started = millis();
-  while (WiFi.status() != WL_CONNECTED && millis() - started < 20000) {
+  unsigned long start = millis();
+  while (WiFi.status() != WL_CONNECTED && millis() - start < 15000) {
     delay(500);
     Serial.print(".");
   }
   if (WiFi.status() == WL_CONNECTED) {
-    Serial.println(" connected");
-    Serial.print("IP: "); Serial.println(WiFi.localIP());
+    Serial.println(" Connected!");
+    Serial.print("IP Address: ");
+    Serial.println(WiFi.localIP());
   } else {
-    Serial.println(" failed; retrying later");
+    Serial.println(" Connection timeout. Will retry in loop.");
   }
 }
 
@@ -69,115 +104,149 @@ void setupFirebase() {
   config.api_key = FIREBASE_API_KEY;
   config.database_url = FIREBASE_DATABASE_URL;
   config.token_status_callback = tokenStatusCallback;
+  
   Firebase.reconnectWiFi(true);
+  fbdo.setResponseSize(1024);
+
+  // Authenticate anonymously or using API key
   if (Firebase.signUp(&config, &auth, "", "")) {
-    Serial.println("Firebase anonymous authentication ready");
+    Serial.println("Firebase Auth Client Ready");
   } else {
-    Serial.printf("Firebase sign-up failed: %s\n", config.signer.signupError.message.c_str());
+    Serial.printf("Firebase sign-up error: %s\n", config.signer.signupError.message.c_str());
   }
+
   Firebase.begin(&config, &auth);
-  configTime(19800, 0, "pool.ntp.org", "time.nist.gov");
-}
-
-void readSensors() {
-  float h = dht.readHumidity();
-  float t = dht.readTemperature();
-  if (isnan(h) || isnan(t)) {
-    Serial.println("DHT11 read failed; keeping previous valid values");
-  } else {
-    humidity = h;
-    temperature = t;
-  }
-  ldrValue = analogRead(LDR_PIN);
-  Serial.printf("Sensors | T: %.1f C | H: %.1f %% | LDR: %d\n", temperature, humidity, ldrValue);
-}
-
-void readControl() {
-  if (!firebaseReady()) return;
-  String newMode;
-  if (Firebase.RTDB.getString(&fbdo, "/iot/control/mode")) {
-    newMode = fbdo.stringData();
-    if (newMode == "manual" || newMode == "automatic") mode = newMode;
-  }
-  if (Firebase.RTDB.getInt(&fbdo, "/iot/settings/ldrThreshold")) {
-    int value = fbdo.intData();
-    if (value >= 0 && value <= 4095) ldrThreshold = value;
-  }
-  if (Firebase.RTDB.getBool(&fbdo, "/iot/settings/ldrInverted")) ldrInverted = fbdo.boolData();
-
-  if (mode == "manual") {
-    if (Firebase.RTDB.getBool(&fbdo, "/iot/control/bulb")) setRelay(fbdo.boolData());
-  } else {
-    bool dark = ldrInverted ? (ldrValue > ldrThreshold) : (ldrValue < ldrThreshold);
-    setRelay(dark);
-  }
-}
-
-void writeCurrent() {
-  if (!firebaseReady() || isnan(temperature) || isnan(humidity)) return;
-  FirebaseJson json;
-  json.set("temperature", temperature);
-  json.set("humidity", humidity);
-  json.set("ldr", ldrValue);
-  json.set("bulb", bulbState);
-  json.set("mode", mode);
-  time_t now = time(nullptr);
-  if (now < 1000000000) return;
-  json.set("timestamp", (int64_t)now * 1000LL);
-  if (!Firebase.RTDB.setJSON(&fbdo, "/iot/current", &json)) {
-    Serial.printf("Current write failed: %s\n", fbdo.errorReason().c_str());
-  }
-}
-
-void writeHistory() {
-  if (!firebaseReady() || isnan(temperature) || isnan(humidity)) return;
-  FirebaseJson json;
-  json.set("timestamp", (int64_t)time(nullptr) * 1000LL);
-  json.set("temperature", temperature);
-  json.set("humidity", humidity);
-  json.set("ldr", ldrValue);
-  json.set("bulb", bulbState);
-  json.set("mode", mode);
-  if (!Firebase.RTDB.pushJSON(&fbdo, "/iot/history", &json)) {
-    Serial.printf("History write failed: %s\n", fbdo.errorReason().c_str());
-  } else {
-    Serial.println("History record written");
-  }
-}
-
-void ensureInitialState() {
-  if (!firebaseReady()) return;
-  if (!Firebase.RTDB.getString(&fbdo, "/iot/control/mode")) Firebase.RTDB.setString(&fbdo, "/iot/control/mode", "manual");
-  if (!Firebase.RTDB.getBool(&fbdo, "/iot/control/bulb")) Firebase.RTDB.setBool(&fbdo, "/iot/control/bulb", false);
-  if (!Firebase.RTDB.getInt(&fbdo, "/iot/settings/ldrThreshold")) Firebase.RTDB.setInt(&fbdo, "/iot/settings/ldrThreshold", 500);
-  if (!Firebase.RTDB.getBool(&fbdo, "/iot/settings/ldrInverted")) Firebase.RTDB.setBool(&fbdo, "/iot/settings/ldrInverted", false);
+  configTime(19800, 0, "pool.ntp.org", "time.nist.gov"); // IST +5:30
 }
 
 void setup() {
   Serial.begin(115200);
   pinMode(RELAY_PIN, OUTPUT);
-  digitalWrite(RELAY_PIN, RELAY_ACTIVE_LOW ? HIGH : LOW);
-  analogReadResolution(12);
+  setPhysicalRelay(false); // Default OFF on boot
   dht.begin();
+
   connectWiFi();
   setupFirebase();
-  delay(1000);
-  ensureInitialState();
-  readSensors();
+}
+
+void readSensors() {
+  float h = dht.readHumidity();
+  float t = dht.readTemperature();
+  int ldr = analogRead(LDR_PIN);
+
+  if (!isnan(t)) temperature = t;
+  if (!isnan(h)) humidity = h;
+  ldrValue = ldr;
+
+  Serial.printf("[Sensors] Temp: %.1f C | Hum: %.1f %% | LDR: %d\n", temperature, humidity, ldrValue);
+}
+
+void syncSensorsToCloud() {
+  if (!Firebase.ready()) return;
+
+  FirebaseJson json;
+  if (!isnan(temperature)) json.set("temperature", temperature);
+  if (!isnan(humidity)) json.set("humidity", humidity);
+  json.set("ldr", ldrValue);
+  
+  time_t now;
+  time(&now);
+  json.set("timestamp", (double)((now > 100000) ? (now * 1000ULL) : millis()));
+
+  if (Firebase.RTDB.setJSON(&fbdo, "/home/sensors", &json)) {
+    Serial.println("[Cloud] Telemetry written to /home/sensors");
+  } else {
+    Serial.printf("[Cloud Error] Sensors write failed: %s\n", fbdo.errorReason().c_str());
+  }
+}
+
+void readSystemControl() {
+  if (!Firebase.ready()) return;
+
+  // Read Operating Mode
+  if (Firebase.RTDB.getString(&fbdo, "/home/system/mode")) {
+    String m = fbdo.stringData();
+    m.toUpperCase();
+    if (m == "MANUAL" || m == "AUTOMATIC") {
+      systemMode = m;
+    }
+  }
+
+  // Read Threshold
+  if (Firebase.RTDB.getInt(&fbdo, "/home/system/ldrThreshold")) {
+    int th = fbdo.intData();
+    if (th > 0 && th < 4096) ldrThreshold = th;
+  }
+
+  // Mode Evaluation
+  if (systemMode == "AUTOMATIC") {
+    // If LDR < threshold (darkness) -> turn bulb ON
+    // If LDR > threshold (bright) -> turn bulb OFF
+    bool shouldBeOn = (ldrValue < ldrThreshold);
+    if (shouldBeOn != bulbState) {
+      setPhysicalRelay(shouldBeOn);
+      Firebase.RTDB.setString(&fbdo, "/home/bulb/state", shouldBeOn ? "ON" : "OFF");
+      Serial.printf("[Auto Logic] LDR %d vs %d -> Bulb %s\n", ldrValue, ldrThreshold, shouldBeOn ? "ON" : "OFF");
+    }
+  } else {
+    // MANUAL Mode: obey /home/bulb/state from web dashboard
+    if (Firebase.RTDB.getString(&fbdo, "/home/bulb/state")) {
+      String cloudBulbState = fbdo.stringData();
+      cloudBulbState.toUpperCase();
+      bool targetOn = (cloudBulbState == "ON");
+      if (targetOn != bulbState) {
+        setPhysicalRelay(targetOn);
+        Serial.printf("[Manual Actuator] Bulb switched to: %s\n", targetOn ? "ON" : "OFF");
+      }
+    }
+  }
+}
+
+void writeHistoricalLog() {
+  if (!Firebase.ready() || isnan(temperature) || isnan(humidity)) return;
+
+  FirebaseJson logPacket;
+  time_t now;
+  time(&now);
+  double epochMs = (now > 100000) ? (double)(now * 1000ULL) : (double)millis();
+
+  logPacket.set("timestamp", epochMs);
+  logPacket.set("temperature", temperature);
+  logPacket.set("humidity", humidity);
+  logPacket.set("ldr", ldrValue);
+  logPacket.set("bulbState", bulbState ? "ON" : "OFF");
+  logPacket.set("mode", systemMode);
+  logPacket.set("note", "ESP32 Auto Log");
+
+  String logPath = "/home/logs/" + String((unsigned long)now);
+  if (Firebase.RTDB.setJSON(&fbdo, logPath, &logPacket)) {
+    Serial.println("[History] Log packet archived to Firebase");
+  }
 }
 
 void loop() {
   connectWiFi();
-  unsigned long now = millis();
-  if (now - lastSensorMs >= SENSOR_INTERVAL) { lastSensorMs = now; readSensors(); }
-  if (now - lastControlMs >= CONTROL_INTERVAL) { lastControlMs = now; readControl(); }
-  if (firebaseReady()) {
-    if (now - lastCurrentWriteMs >= SENSOR_INTERVAL) { lastCurrentWriteMs = now; writeCurrent(); }
-    if (now - lastLogMs >= LOG_INTERVAL) { lastLogMs = now; writeHistory(); }
+
+  unsigned long currentMs = millis();
+
+  // 1. Control loop (Bulb actuator & mode sync)
+  if (currentMs - lastControlMs >= CONTROL_READ_INTERVAL) {
+    lastControlMs = currentMs;
+    readSystemControl();
   }
-  if (bulbState != previousBulbState) {
-    previousBulbState = bulbState;
-    Serial.printf("Relay/Bulb: %s | Mode: %s\n", bulbState ? "ON" : "OFF", mode.c_str());
+
+  // 2. Sensor reading & cloud telemetry stream
+  if (currentMs - lastSensorMs >= SENSOR_READ_INTERVAL) {
+    lastSensorMs = currentMs;
+    readSensors();
+    syncSensorsToCloud();
   }
-  delay(50);
+
+  // 3. Periodic history logging
+  if (currentMs - lastLogMs >= LOG_INTERVAL) {
+    lastLogMs = currentMs;
+    writeHistoricalLog();
+  }
+
+  delay(20);
 }
